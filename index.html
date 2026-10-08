@@ -3,533 +3,759 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DentaOps Rejets — Action immédiate & Statistiques</title>
+<title>DentaOps Rejets</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    background: #0f172a; color: #e2e8f0;
-    min-height: 100vh; padding: 16px 16px 40px;
+  :root{
+    --bg:#f1f5f9; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+    --primary:#0d9488; --primary-dark:#0f766e; --accent:#0ea5e9;
+    --warn:#f59e0b; --ok:#10b981; --danger:#ef4444;
+    --border:#e2e8f0; --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
   }
-  .container { max-width: 720px; margin: 0 auto; }
-  h1 { font-size: 1.4rem; text-align: center; color: #38bdf8; margin-bottom: 4px; }
-  .sub { text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 16px; }
-
-  .tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #1e293b; padding: 4px; border-radius: 12px; }
-  .tab {
-    flex: 1; padding: 10px; text-align: center; font-size: 0.85rem;
-    font-weight: 600; color: #94a3b8; cursor: pointer; border-radius: 8px;
-    transition: all 0.15s;
-  }
-  .tab.active { background: #38bdf8; color: #0f172a; }
-
-  .panel { display: none; }
-  .panel.active { display: block; }
-
-  textarea#paste {
-    width: 100%; min-height: 80px; padding: 14px;
-    font-size: 0.95rem; border: 2px solid #334155; border-radius: 12px;
-    background: #1e293b; color: #e2e8f0; outline: none;
-    resize: vertical; font-family: inherit;
-  }
-  textarea#paste:focus { border-color: #38bdf8; }
-  textarea#paste::placeholder { color: #64748b; }
-
-  .cat-bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
-  .cat-chip {
-    font-size: 0.75rem; padding: 6px 10px; background: #1e293b;
-    border: 1px solid #334155; border-radius: 20px; color: #94a3b8;
-    cursor: pointer; transition: all 0.15s;
-  }
-  .cat-chip.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; font-weight: 600; }
-
-  .result {
-    background: #1e293b; border-radius: 14px; padding: 18px;
-    margin-bottom: 14px; border-left: 5px solid #38bdf8;
-    animation: slide 0.2s ease;
-  }
-  @keyframes slide { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform: none;} }
-  .result .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
-  .result .code { font-size: 1.3rem; font-weight: 800; color: #38bdf8; letter-spacing: 1px; }
-  .result .cat {
-    font-size: 0.65rem; padding: 3px 8px; background: #334155;
-    border-radius: 6px; color: #94a3b8; text-transform: uppercase;
-    letter-spacing: 0.5px; white-space: nowrap;
-  }
-  .result .libelle { font-size: 0.9rem; color: #cbd5e1; margin-bottom: 14px; font-style: italic; }
-  .result .action-label {
-    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px;
-    color: #4ade80; margin-bottom: 6px; font-weight: 700;
-  }
-  .result .action { font-size: 1.05rem; line-height: 1.55; color: #f1f5f9; margin-bottom: 12px; }
-  .copy-btn {
-    background: #38bdf8; color: #0f172a; border: none;
-    padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
-    font-weight: 700; cursor: pointer;
-  }
-  .copy-btn.copied { background: #4ade80; }
-
-  .empty { text-align: center; color: #64748b; padding: 40px 20px; font-style: italic; font-size: 0.9rem; }
-  .hint { text-align: center; color: #475569; font-size: 0.75rem; margin-top: 24px; }
-  .count { text-align: center; color: #38bdf8; font-size: 0.75rem; margin-bottom: 12px; }
-
-  .history-bar { margin-top: 24px; }
-  .history-bar h3 { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom;
-: 8px; }
-  .history-list { display: flex; flex-wrap: wrap; gap: 6px; }
-  .history-chip {
-    font-size: 0.75rem; padding: 5px 10px; background: #1e293b    border: 1px solid #334155; border-radius: 6px; color: #cbd5e1; cursor: pointer;
-  }
-  .history-chip:hover { border-color: #38bdf8; color: #38bdf8; }
-
-  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-  .kpi {
-    background: #1e293b; border-radius: 12px; padding: 16px;
-    border-left: 4px solid #38bdf8;
-  }
-  .kpi .val { font-size: 1.8rem; font-weight: 800; color: #38bdf8; }
-  .kpi .lab { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
-  .kpi.green { border-left-color: #4ade80; }
-  .kpi.green .val { color: #4ade80; }
-  .kpi.orange { border-left-color: #f59e0b; }
-  .kpi.orange .val { color: #f59e0b; }
-
-  .section-title {
-    font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;
-    letter-spacing: 1px; margin: 22px 0 10px;
-  }
-  .bar-row { margin-bottom: 10px; }
-  .bar-head { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
-  .bar-head .bcode { color: #38bdf8; font-weight: 700; }
-  .bar-head .bcount { color: #94a3b8; }
-  .bar-track { background: #1e293b; border-radius: 6px; height: 10px; overflow: hidden; }
-  .bar-fill {
-    height: 100%; background: linear-gradient(90deg, #38bdf8, #4ade80);
-    border-radius: 6px; transition: width 0.5s;
-  }
-
-  .stats-actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
-  .btn {
-    flex: 1; min-width: 140px; padding: 12px; border-radius: 10px;
-    border: 1px solid #334155; background: #1e293b; color: #e2e8f0;
-    font-size: 0.85rem; font-weight: 600; cursor: pointer;
-  }
-  .btn.danger { border-color: #7f1d1d; color: #fca5a5; }
-  .btn.primary { background: #38bdf8; color: #0f172a; border: none; }
-
-  .footer {
-    text-align: center; color: #475569; font-size: 0.7rem;
-    margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b;
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;}
+  header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+    padding:18px 20px;box-shadow:var(--shadow);position:sticky;top:0;z-index:10;}
+  .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .logo{font-size:24px;}
+  h1{font-size:20px;font-weight:700;letter-spacing:-.3px;}
+  h1 span{font-weight:400;opacity:.85;font-size:14px;margin-left:6px;}
+  nav{max-width:1100px;margin:14px auto 0;display:flex;gap:6px;flex-wrap:wrap;}
+  nav button{background:rgba(255,255,255,.15);color:#fff;border:0;padding:8px 14px;
+    border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:.15s;}
+  nav button:hover{background:rgba(255,255,255,.25);}
+  nav button.active{background:#fff;color:var(--primary-dark);font-weight:600;}
+  .header-links{max-width:1100px;margin:10px auto 0;font-size:12px;text-align:right;}
+  .header-links a{color:rgba(255,255,255,.9);text-decoration:none;margin-left:12px;}
+  .header-links a:hover{text-decoration:underline;}
+  main{max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
+  .tab{display:none;} .tab.active{display:block;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+    padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
+  h2{font-size:17px;margin-bottom:14px;color:var(--primary-dark);}
+  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500;}
+  input,select,textarea{width:100%;padding:11px 14px;border:1px solid var(--border);
+    border-radius:8px;font-size:15px;font-family:inherit;background:#fff;transition:.15s;}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.12);}
+  button.btn{background:var(--primary);color:#fff;border:0;padding:11px 18px;border-radius:8px;
+    font-size:15px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;}
+  button.btn:hover{background:var(--primary-dark);}
+  button.btn.secondary{background:#e2e8f0;color:var(--text);}
+  button.btn.secondary:hover{background:#cbd5e1;}
+  button.btn.danger{background:var(--danger);}
+  button.btn.danger:hover{background:#dc2626;}
+  button.btn.small{padding:7px 12px;font-size:13px;}
+  .search-input{font-size:20px;padding:16px 18px;font-weight:600;letter-spacing:1px;}
+  .result{margin-top:16px;}
+  .fiche{border-left:4px solid var(--primary);background:#f0fdfa;border-radius:10px;padding:18px;margin-top:16px;}
+  .fiche h3{font-size:22px;color:var(--primary-dark);margin-bottom:12px;}
+  .fiche .action{background:#fff;border:1px solid var(--primary);border-radius:8px;
+    padding:14px;font-size:16px;font-weight:600;color:var(--primary-dark);margin-bottom:14px;}
+  .fiche dl{display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:14px;}
+  .fiche dt{color:var(--muted);font-weight:500;}
+  .fiche dd{color:var(--text);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
+  .badge.warn{background:#fef3c7;color:#92400e;}
+  .badge.ok{background:#d1fae5;color:#065f46;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+  .stat .num{font-size:26px;font-weight:700;color:var(--primary-dark);}
+  .stat .lbl{font-size:12px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
+  .rejet{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  .rejet-info{flex:1;min-width:200px;}
+  .rejet-code{font-weight:700;color:var(--primary-dark);font-size:15px;}
+  .rejet-meta{font-size:13px;color:var(--muted);margin-top:2px;}
+  .rejet-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .filter-bar button{background:#e2e8f0;color:var(--text);border:0;padding:7px 14px;
+    border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;}
+  .filter-bar button.active{background:var(--primary);color:#fff;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
+  th{background:#f8fafc;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px;}
+  tr:hover td{background:#f8fafc;}
+  .empty{text-align:center;color:var(--muted);padding:30px 10px;font-style:italic;}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
+  .row > *{flex:1;min-width:150px;}
+  .tag{display:inline-block;background:#e2e8f0;color:var(--text);padding:2px 8px;
+    border-radius:6px;font-size:12px;margin-right:4px;}
+  .hidden{display:none!important;}
+  footer{text-align:center;font-size:12px;color:var(--muted);padding:20px;}
+  footer a{color:var(--primary);text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+  @media(max-width:600px){
+    h1{font-size:17px;} h1 span{display:none;}
+    .fiche dl{grid-template-columns:1fr;}
+    .fiche dt{margin-top:8px;}
+    nav button{font-size:13px;padding:7px 11px;}
   }
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>🦷 DentaOps Rejets</h1>
-  <p class="sub">Tape un code de rejet → l'action à faire s'affiche</p>
 
-  <div class="tabs">
-    <div class="tab active" data-panel="search">🔍 Recherche</div>
-    <div class="tab" data-panel="stats">📊 Statistiques</div>
+<header>
+  <div class="header-inner">
+    <div class="logo">🦷</div>
+    <h1>DentaOps Rejets <span>· gestion interne</span></h1>
   </div>
+  <nav>
+    <button data-tab="search" class="active">🔍 Rechercher</button>
+    <button data-tab="rejets">📋 Rejets</button>
+    <button data-tab="stats">📊 Stats</button>
+    <button data-tab="settings">⚙️ Réglages</button>
+  </nav>
+  <div class="header-links">
+    <a href="mentions.html">Mentions légales & Confidentialité</a>
+  </div>
+</header>
 
-  <div class="panel active" id="panel-search">
-    <p class="count" id="count"></p>
-    <textarea id="paste" placeholder="Colle ici le message de rejet complet ou tape juste le code (ex: 2600 700)"></textarea>
-    <div class="cat-bar" id="catBar"></div>
-    <div id="results"></div>
+<main>
 
-    <div class="history-bar" id="historyBar" style="display:none;">
-      <h3>🕐 Codes récents</h3>
-      <div class="history-list" id="historyList"></div>
+  <!-- ============ TAB RECHERCHE ============ -->
+  <section id="tab-search" class="tab active">
+    <div class="card">
+      <h2>Rechercher un code de rejet</h2>
+      <label for="searchInput">Saisis le code, l'app te dit quoi faire</label>
+      <input id="searchInput" class="search-input" placeholder="Ex : 101" autocomplete="off">
+      <div class="hint" id="searchHint"></div>
+      <div id="searchResult" class="result"></div>
     </div>
-    <p class="hint">💡 Tape "2600700", "2600 700" ou colle le message entier — l'app comprend.</p>
-  </div>
 
-  <div class="panel" id="panel-stats">
-    <div class="kpi-grid" id="kpiGrid"></div>
-
-    <div class="section-title">🔥 Top rejets récurrents</div>
-    <div id="topBars"></div>
-
-    <div class="section-title">📂 Répartition par catégorie</div>
-    <div id="catBars"></div>
-
-    <div class="section-title">📈 Activité des 7 derniers jours</div>
-    <div id="weeklyBars"></div>
-
-    <div class="stats-actions">
-      <button class="btn primary" id="exportBtn">📤 Exporter CSV</button>
-      <button class="btn danger" id="resetBtn">🗑️ Réinitialiser</button>
+    <div class="card" id="quickListCard">
+      <h2>Tous les codes disponibles</h2>
+      <div id="allCodesList"></div>
     </div>
-    <p class="hint">Données stockées localement sur cet appareil (confidentiel).</p>
-  </div>
+  </section>
 
-  <p class="footer">© DentaOps — dentaops.com</p>
-</div>
+  <!-- ============ TAB REJETS ============ -->
+  <section id="tab-rejets" class="tab">
+    <div class="stat-grid" id="miniStats"></div>
+
+    <div class="card">
+      <h2>Rejets enregistrés</h2>
+      <div class="filter-bar">
+        <button data-filter="all" class="active">Tous</button>
+        <button data-filter="en_attente">🟠 En attente</button>
+        <button data-filter="traite">🟢 Traités</button>
+      </div>
+      <div id="rejetsList"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB STATS ============ -->
+  <section id="tab-stats" class="tab">
+    <div class="stat-grid" id="globalStats"></div>
+
+    <div class="card">
+      <h2>Par praticien</h2>
+      <div id="statsByPraticien"></div>
+    </div>
+
+    <div class="card">
+      <h2>Top codes rejetés</h2>
+      <div id="statsByCode"></div>
+    </div>
+  </section>
+
+  <!-- ============ TAB REGLAGES ============ -->
+  <section id="tab-settings" class="tab">
+
+    <div class="card">
+      <h2>📥 Importer les codes (Excel / CSV)</h2>
+      <p class="hint" style="margin-bottom:12px">Colonnes attendues : <b>code, action, cause, qui, delai, pieces, risque</b></p>
+      <input type="file" id="importCodes" accept=".xlsx,.xls,.csv">
+      <div class="hint" id="importCodesStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>📤 Exporter</h2>
+      <div class="row">
+        <button class="btn secondary" id="exportCodes">Exporter les codes (CSV)</button>
+        <button class="btn secondary" id="exportRejets">Exporter les rejets (CSV)</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>👥 Praticiens (codes anonymes)</h2>
+      <p class="hint" style="margin-bottom:12px">Utilise P1, P2, P3… Toi seule connais la correspondance. Aucun nom dans l'app.</p>
+      <div class="row">
+        <input id="newPraticien" placeholder="Ex : P4">
+        <button class="btn" id="addPraticien" style="flex:0 0 auto">Ajouter</button>
+      </div>
+      <div id="praticiensList" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2>🧪 Données</h2>
+      <div class="row">
+        <button class="btn secondary" id="loadSample">Charger 10 codes d'exemple</button>
+        <button class="btn danger" id="resetAll">Réinitialiser toute l'app</button>
+      </div>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  DentaOps Rejets — <a href="mentions.html">Mentions légales & Confidentialité</a>
+</footer>
 
 <script>
-const CODES = {
-  "2600 700": { libelle: "Absence de localisation dentaire", cat: "Localisation",
-    action: "Indiquer systématiquement le ou les numéros des dents soignées lors de la facturation." },
-  "2600 702": { libelle: "Nombre de dents insuffisant", cat: "Localisation",
-    action: "Indiquer le bon nombre de dents concernées (avulsion multiple = plusieurs numéros)." },
-  "2600 710": { libelle: "Incompatibilité code CCAM / localisation", cat: "Localisation",
-    action: "Vérifier la compatibilité acte / localisation. Détartrage : 01 maxillaire, 02 mandibulaire, 01+02 complet (jamais 00)." },
-  "0568 002": { libelle: "Localisation dentaire invalide", cat: "Localisation",
-    action: "Vérifier la nomenclature officielle des localisations dentaires sur Ameli." },
-  "2600 649": { libelle: "Association d'actes incompatible", cat: "CCAM",
-    action: "Les codes CCAM facturés ne sont pas compatibles. Consulter les règles d'association sur ameli.fr." },
-  "2600 650": { libelle: "Code association non prévu", cat: "CCAM",
-    action: "Vérifier le code association attendu pour cet acte CCAM (voir CCAM sur ameli.fr)." },
-  "0450 097": { libelle: "Soins de suite sans date d'examen valide", cat: "Prévention",
-    action: "Facturer l'examen bucco-dentaire de référence 2 à 3 jours avant les soins de suite." },
-  "0600 064": { libelle: "Rubrique bucco-dentaire absente", cat: "Prévention",
-    action: "Vérifier l'éligibilité du patient (âge, grossesse) et la réception du bon de prise en charge." },
-  "0600 069": { libelle: "Rubrique prévention absente", cat: "Prévention",
-    action: "Vérifier la période de prise en charge et le matricule utilisé pour la facturation." },
-  "0450 054": { libelle: "ETM non trouvée en BDO", cat: "Tiers payant",
-    action: "Pas d'ALD → code 0 ; pension d'invalidité → code 5." },
-  "0450 056": { libelle: "ETM connue en BDO mais non transmise", cat: "Tiers payant",
-    action: "Vérifier les droits (ADRi, attestation) et faire mettre à jour la carte Vitale du patient." },
-  "0450 057": { libelle: "MTM non trouvée en BDO", cat: "Tiers payant",
-    action: "Vérifier la situation du patient et le motif de prise en charge." },
-  "0450 072": { libelle: "Exonération divergente FSE / AM", cat: "Tiers payant",
-    action: "Retélétransmettre la facture SANS motif d'exonération." },
-  "0480 054": { libelle: "Facture TPC incompatible type contrat", cat: "Tiers payant",
-    action: "Consulter les droits (ADRi, attestation) et vérifier l'éligibilité C2S à la date des soins." },
-  "0480 061": { libelle: "Organisme complémentaire non habilité ACS", cat: "Tiers payant",
-    action: "Mettre à jour le logiciel, consulter les droits, faire mettre à jour la carte Vitale." },
-  "0540 064": { libelle: "Incompatibilité nature prestation / spécialité", cat: "Tiers payant",
-    action: "Vérifier que les actes facturés sont autorisés pour la spécialité du praticien." },
-  "0540 079": { libelle: "Absence contrat et forfait C2S", cat: "Tiers payant",
-    action: "Vérifier la situation du bénéficiaire et retransmettre avec le bon NNI si droits valides." },
-  "0250 050": { libelle: "Assuré absent dans la BDO", cat: "Technique",
-    action: "Vérifier la saisie du NIR et l'organisme d'affiliation sur l'attestation de droits." },
-  "0250 051": { libelle: "Bénéficiaire absent de la BDO", cat: "Technique",
-    action: "Vérifier la date de naissance du bénéficiaire." },
-  "0460 051": { libelle: "Prescripteur inconnu", cat: "Technique",
-    action: "Vérifier le numéro de prescripteur sur l'ordonnance." },
-  "0460 053": { libelle: "Prescripteur inconnu (variante)", cat: "Technique",
-    action: "Vérifier le numéro de prescripteur sur l'ordonnance." },
-  "0470 049": { libelle: "Prescription interdite à cette date", cat: "Technique",
-    action: "Praticien salarié → numéro entité géographique ; remplaçant → numéro du remplacé." },
-  "0180 051": { libelle: "Facture déjà en traitement IRIS", cat: "Technique",
-    action: "Vérifier le numéro de facture — doublon possible." },
-  "0600 051": { libelle: "Date de prestation postérieure à date décès", cat: "Technique",
-    action: "Vérifier la date de décès du bénéficiaire et corriger la date de prestation." },
-  "0700 060": { libelle: "Écart tarifaire", cat: "Technique",
-    action: "Vérifier le tarif appliqué et le tarif de référence applicable à la date." },
-  "1170 001": { libelle: "Base de remboursement absente", cat: "Technique",
-    action: "Vérifier la codification de l'acte facturé." },
-  "2600 850": { libelle: "Prix unitaire erroné", cat: "Technique",
-    action: "Vérifier le tarif applicable à la date de facturation." },
-  "6500 001": { libelle: "Prix unitaire absent", cat: "Technique",
-    action: "Vérifier que le prix unitaire est bien renseigné pour l'acte." },
-  "1031": { libelle: "Erreur télétransmission", cat: "Technique",
-    action: "Vérifier la connexion et retransmettre. Si persiste, contacter l'éditeur du logiciel." },
-  "4005": { libelle: "Erreur de structure du flux", cat: "Technique",
-    action: "Contacter l'éditeur du logiciel — le flux est mal formé." },
-  "4015": { libelle: "Erreur de routage SESAM-Vitale", cat: "Technique",
-    action: "Vérifier la carte CPS et la connexion, puis retransmettre." },
-  "2900 001": { libelle: "Multiples factures dentistes à J", cat: "Doublon",
-    action: "Vérifier le bénéficiaire. En cas d'erreur, demander l'annulation de la FSE erronée." },
-  "2900 005": { libelle: "La facture a déjà été payée", cat: "Doublon",
-    action: "Vérifier le paiement. Si nécessaire, formuler une réclamation." },
-  "2900 230": { libelle: "Multiples facturations dentistes", cat: "Doublon",
-    action: "Vérifier le bénéficiaire et annuler la FSE erronée si doublon confirmé." },
-  "431": { libelle: "Lot avec MT RC-ZERO", cat: "Mutuelle",
-    action: "Vérifier le montant du reste à charge, corriger le lot et retransmettre." },
-  "000": { libelle: "Code rejet indéfini", cat: "Mutuelle",
-    action: "Contacter l'organisme complémentaire pour identifier la cause précise." },
-  "113": { libelle: "Date facture erronée", cat: "Mutuelle",
-    action: "Vérifier la date de facture transmise et corriger." },
-  "200": { libelle: "N° PS inconnu ou sans convention TP", cat: "Mutuelle",
-    action: "Vérifier le n° PS et la convention de tiers payant avec l'organisme." },
-  "301": { libelle: "N° PS différent type 2/4", cat: "Mutuelle",
-    action: "Incohérence dans le flux. Vérifier le logiciel de facturation." },
-  "302": { libelle: "N° assuré différent type 2/4", cat: "Mutuelle",
-    action: "Incohérence dans le flux. Vérifier les données patient." },
-  "303": { libelle: "Caractère alphabétique dans zone numérique", cat: "Mutuelle",
-    action: "Erreur de saisie. Corriger le champ concerné." },
-  "305": { libelle: "N° PS différent type 1/2", cat: "Mutuelle",
-    action: "Vérifier le logiciel de facturation." },
-  "306": { libelle: "N° assuré + clé différent type 2/4", cat: "Mutuelle",
-    action: "Vérifier les données patient." },
-  "307": { libelle: "Marquage de flux incorrect", cat: "Mutuelle",
-    action: "Erreur de format. Vérifier avec le logiciel de facturation." },
-  "308": { libelle: "Code type facture incorrect", cat: "Mutuelle",
-    action: "Vérifier le type de facture transmis." },
-  "400": { libelle: "Incompatibilité taux RO / code acte", cat: "Mutuelle",
-    action: "Vérifier la codification de l'acte." },
-  "401": { libelle: "Nature exonération TM non renseignée", cat: "Mutuelle",
-    action: "Renseigner la nature d'exonération du ticket modérateur." },
-  "402": { libelle: "Incompatibilité taux RO / code exonération TM", cat: "Mutuelle",
-    action: "Corriger le taux ou l'exonération." },
-  "403": { libelle: "Incompatibilité taux RO / régime", cat: "Mutuelle",
-    action: "Vérifier le régime de l'assuré." },
-  "404": { libelle: "Incompatibilité taux RO / risque", cat: "Mutuelle",
-    action: "Vérifier la codification." },
-  "405": { libelle: "Incompatibilité taux mutuelle / risque", cat: "Mutuelle",
-    action: "Vérifier les garanties du contrat." },
-  "406": { libelle: "Incompatibilité taux RO / acte", cat: "Mutuelle",
-    action: "Vérifier la codification de l'acte." },
-  "407": { libelle: "N° facture non renseigné ou incorrect", cat: "Mutuelle",
-    action: "Renseigner correctement le numéro de facture." },
-  "408": { libelle: "Code nature opération inconnu", cat: "Mutuelle",
-    action: "Vérifier le code nature de l'opération transmis." }
+/* =========================================================
+   DentaOps Rejets — application complète
+   Stockage local (localStorage). Aucun envoi réseau.
+   ========================================================= */
+
+const STORAGE_KEY = 'dentaops_rejets_v3';
+
+const SAMPLE_CODES = {
+  "101": {action:"Refaire la radiographie rétro-alvéolaire",cause:"Image non conforme / non lisible",qui:"Praticien",delai:5,pieces:["Radio conforme"],risque:"Rejet définitif — perte 45 €"},
+  "102": {action:"Joindre le devis signé et daté",cause:"Devis manquant ou non signé",qui:"Secrétariat",delai:3,pieces:["Devis signé","Photo carte mutuelle"],risque:"Suspension du remboursement"},
+  "103": {action:"Corriger la date de soin sur la feuille",cause:"Date incohérente avec le calendrier",qui:"Secrétariat",delai:2,pieces:["Feuille corrigée"],risque:"Rejet pour vice de forme"},
+  "104": {action:"Renvoyer l'entente préalable",cause:"Entente préalable non reçue par la caisse",qui:"Secrétariat",delai:7,pieces:["Entente préalable"],risque:"Perte de prise en charge"},
+  "105": {action:"Compléter la codification CCAM",cause:"Code CCAM incomplet ou erroné",qui:"Praticien",delai:5,pieces:["Feuille de soins corrigée"],risque:"Rejet de la totalité de la séance"},
+  "106": {action:"Régulariser l'accord préalable mutuelle",cause:"Accord préalable non transmis",qui:"Secrétariat",delai:10,pieces:["Accord mutuelle"],risque:"Perte 120 €"},
+  "107": {action:"Vérifier les droits du patient à la date du soin",cause:"Droits fermés à la date du soin",qui:"Secrétariat",delai:5,pieces:["Attestation droits"],risque:"Rejet définitif"},
+  "108": {action:"Renvoyer la feuille avec tampon et signature",cause:"Feuille non signée ou non tamponnée",qui:"Praticien",delai:3,pieces:["Feuille signée"],risque:"Rejet pour vice de forme"},
+  "109": {action:"Fournir le devis détaillé pluriannuel",cause:"Plan de traitement > 8 séances sans devis",qui:"Praticien",delai:7,pieces:["Devis détaillé"],risque:"Blocage du remboursement"},
+  "110": {action:"Corriger la codification du praticien",cause:"Numéro ADELI erroné",qui:"Secrétariat",delai:5,pieces:["Feuille corrigée"],risque:"Rejet administratif"}
 };
 
-const input = document.getElementById("paste");
-const results = document.getElementById("results");
-const catBar = document.getElementById("catBar");
-const historyBar = document.getElementById("historyBar");
-const historyList = document.getElementById("historyList");
-const countEl = document.getElementById("count");
-let activeCat = null;
+let state = {
+  codes: {},
+  rejets: [],
+  praticiens: ['P1','P2','P3']
+};
 
-countEl.textContent = `📚 ${Object.keys(CODES).length} codes référencés`;
-
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.onclick = () => {
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById("panel-" + tab.dataset.panel).classList.add("active");
-    if (tab.dataset.panel === "stats") renderStats();
-  };
-});
-
-const CATS = [...new Set(Object.values(CODES).map(c => c.cat))];
-CATS.forEach(cat => {
-  const chip = document.createElement("div");
-  chip.className = "cat-chip";
-  chip.textContent = cat;
-  chip.onclick = () => {
-    activeCat = (activeCat === cat) ? null : cat;
-    document.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("active"));
-    if (activeCat) chip.classList.add("active");
-    render(input.value);
-  };
-  catBar.appendChild(chip);
-});
-
-function extractCodes(text) {
-  const found = new Set();
-  const cleaned = text.toUpperCase().replace(/[–—]/g, "-");
-  Object.keys(CODES).forEach(code => {
-    const noSpace = code.replace(/\s/g, "");
-    const pattern = new RegExp(noSpace.split("").join("[\\s\\-]?"), "i");
-    if (pattern.test(cleaned.replace(/[\s\-]/g, ""))) found.add(code);
-  });
-  const regex1 = /\b(\d{4})[\s\-]?(\d{3,4})\b/g;
-  let m;
-  while ((m = regex1.exec(text)) !== null) {
-    const key = m[1] + " " + m[2];
-    if (CODES[key]) found.add(key);
-  }
-  const regex2 = /\b(\d{3})\b/g;
-  while ((m = regex2.exec(text)) !== null) {
-    if (CODES[m[1]]) found.add(m[1]);
-  }
-  return [...found];
-}
-
-let history = JSON.parse(localStorage.getItem("rejets_history") || "[]");
-let stats = JSON.parse(localStorage.getItem("rejets_stats") || "{}");
-let activity = JSON.parse(localStorage.getItem("rejets_activity") || "{}");
-
-function saveAll() {
-  localStorage.setItem("rejets_history", JSON.stringify(history));
-  localStorage.setItem("rejets_stats", JSON.stringify(stats));
-  localStorage.setItem("rejets_activity", JSON.stringify(activity));
-}
-
-function trackCode(code) {
-  history = [code, ...history.filter(c => c !== code)].slice(0, 8);
-  stats[code] = (stats[code] || 0) + 1;
-  const today = new Date().toISOString().slice(0, 10);
-  activity[today] = (activity[today] || 0) + 1;
-  saveAll();
-  renderHistory();
-}
-
-function renderHistory() {
-  if (history.length === 0) { historyBar.style.display = "none"; return; }
-  historyBar.style.display = "block";
-  historyList.innerHTML = history.map(c =>
-    `<span class="history-chip" data-code="${c}">${c}</span>`
-  ).join("");
-  historyList.querySelectorAll(".history-chip").forEach(el => {
-    el.onclick = () => { input.value = el.dataset.code; render(el.dataset.code); };
-  });
-}
-
-function render(text) {
-  const val = (text || "").trim();
-  if (!val) {
-    results.innerHTML = '<div class="empty">Colle un message de rejet ou tape un code…</div>';
-    return;
-  }
-  let matches = extractCodes(val);
-  if (matches.length === 0) {
-    const digits = val.replace(/[^0-9]/g, "");
-    if (digits.length >= 3) {
-      matches = Object.keys(CODES).filter(k => k.replace(/\s/g, "").includes(digits));
+/* ---------- Persistance ---------- */
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){
+      const d = JSON.parse(raw);
+      state.codes = d.codes || {};
+      state.rejets = d.rejets || [];
+      state.praticiens = d.praticiens || ['P1','P2','P3'];
+    } else {
+      state.codes = {...SAMPLE_CODES};
+      save();
     }
-  }
-  if (activeCat) matches = matches.filter(c => CODES[c].cat === activeCat);
-
-  if (matches.length === 0) {
-    results.innerHTML = '<div class="empty">❌ Aucun code reconnu.<br>Vérifie la saisie ou le message collé.</div>';
-    return;
-  }
-
-  results.innerHTML = matches.map(code => {
-    const d = CODES[code];
-    return `
-      <div class="result">
-        <div class="top">
-          <div class="code">${code}</div>
-          <div class="cat">${d.cat}</div>
-        </div>
-        <div class="libelle">${d.libelle}</div>
-        <div class="action-label">✅ Action à faire</div>
-        <div class="action">${d.action}</div>
-        <button class="copy-btn" data-action="${d.action.replace(/"/g, '&quot;')}">📋 Copier l'action</button>
-      </div>
-    `;
-  }).join("");
-
-  results.querySelectorAll(".copy-btn").forEach(btn => {
-    btn.onclick = async () => {
-      const txt = btn.dataset.action;
-      try { await navigator.clipboard.writeText(txt); }
-      catch (e) {
-        const ta = document.createElement("textarea");
-        ta.value = txt;
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand("copy");
-        document.body.removeChild(ta);
-      }
-      btn.textContent = "✅ Copié !";
-      btn.classList.add("copied");
-      setTimeout(() => { btn.textContent = "📋 Copier l'action"; btn.classList.remove("copied"); }, 1500);
-    };
-  });
-
-  matches.forEach(c => trackCode(c));
+  }catch(e){ console.error('Load error',e); state.codes = {...SAMPLE_CODES}; }
 }
+function save(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch(e){ console.error('Save error',e); }
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
-function renderStats() {
-  const totalConsultations = Object.values(stats).reduce((a, b) => a + b, 0);
-  const timeSavedMin = totalConsultations * 3;
-  const uniqueCodes = Object.keys(stats).length;
-  const avgPerDay = (() => {
-    const days = Object.keys(activity).length;
-    return days > 0 ? (totalConsultations / days).toFixed(1) : 0;
-  })();
+/* ---------- Navigation ---------- */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+    if(b.dataset.tab==='rejets') renderRejets();
+    if(b.dataset.tab==='stats') renderStats();
+    if(b.dataset.tab==='settings') renderSettings();
+    if(b.dataset.tab==='search') renderAllCodes();
+  });
+});
 
-  document.getElementById("kpiGrid").innerHTML = `
-    <div class="kpi">
-      <div class="val">${totalConsultations}</div>
-      <div class="lab">Rejets traités</div>
-    </div>
-    <div class="kpi green">
-      <div class="val">${timeSavedMin >= 60 ? (timeSavedMin/60).toFixed(1) + " h" : timeSavedMin + " min"}</div>
-      <div class="lab">Temps économisé</div>
-    </div>
-    <div class="kpi orange">
-      <div class="val">${uniqueCodes}</div>
-      <div class="lab">Codes distincts</div>
-    </div>
-    <div class="kpi">
-      <div class="val">${avgPerDay}</div>
-      <div class="lab">Rejets / jour</div>
+/* =========================================================
+   TAB RECHERCHE
+   ========================================================= */
+const searchInput = document.getElementById('searchInput');
+const searchResult = document.getElementById('searchResult');
+const searchHint = document.getElementById('searchHint');
+
+searchInput.addEventListener('input', ()=>{
+  const q = searchInput.value.trim();
+  if(!q){ searchResult.innerHTML=''; searchHint.textContent=''; return; }
+  const code = state.codes[q];
+  if(code){
+    searchHint.textContent='';
+    searchResult.innerHTML = renderFiche(q, code);
+    wireFicheActions(q);
+  } else {
+    searchHint.textContent = `Code "${q}" introuvable. Vérifie ou importe-le dans Réglages.`;
+    searchResult.innerHTML='';
+  }
+});
+
+function renderFiche(code, c){
+  const pieces = Array.isArray(c.pieces) ? c.pieces.join(', ') : (c.pieces||'—');
+  return `
+    <div class="fiche">
+      <h3>Code ${esc(code)}</h3>
+      <div class="action">${esc(c.action||'—')}</div>
+      <dl>
+        <dt>Cause probable</dt><dd>${esc(c.cause||'—')}</dd>
+        <dt>Qui agit</dt><dd>${esc(c.qui||'—')}</dd>
+        <dt>Délai</dt><dd>${c.delai ? esc(c.delai)+' jour(s)' : '—'}</dd>
+        <dt>Pièces à fournir</dt><dd>${esc(pieces)}</dd>
+        <dt>Risque si non traité</dt><dd>${esc(c.risque||'—')}</dd>
+      </dl>
+      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
+        <div style="flex:1;min-width:140px;">
+          <label>Praticien (code anonyme)</label>
+          <select id="fichePraticien">
+            <option value="">—</option>
+            ${state.praticiens.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('')}
+          </select>
+        </div>
+        <div style="flex:1;min-width:140px;">
+          <label>Montant en jeu (€, optionnel)</label>
+          <input id="ficheMontant" type="number" step="0.01" placeholder="0.00">
+        </div>
+        <button class="btn" id="ficheSave" style="flex:0 0 auto;">Enregistrer ce rejet</button>
+      </div>
     </div>
   `;
-
-  const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]).slice(0, 8);
-  const max = sorted[0]?.[1] || 1;
-  document.getElementById("topBars").innerHTML = sorted.length === 0
-    ? '<div class="empty">Aucune donnée pour le moment.</div>'
-    : sorted.map(([code, n]) => `
-      <div class="bar-row">
-        <div class="bar-head">
-          <span class="bcode">${code} — ${CODES[code]?.libelle || "?"}</span>
-          <span class="bcount">${n}×</span>
-        </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(n/max)*100}%"></div></div>
-      </div>
-    `).join("");
-
-  const catCount = {};
-  Object.entries(stats).forEach(([code, n]) => {
-    const cat = CODES[code]?.cat || "Autre";
-    catCount[cat] = (catCount[cat] || 0) + n;
-  });
-  const catSorted = Object.entries(catCount).sort((a, b) => b[1] - a[1]);
-  const catMax = catSorted[0]?.[1] || 1;
-  document.getElementById("catBars").innerHTML = catSorted.length === 0
-    ? '<div class="empty">Aucune donnée pour le moment.</div>'
-    : catSorted.map(([cat, n]) => `
-      <div class="bar-row">
-        <div class="bar-head">
-          <span class="bcode">${cat}</span>
-          <span class="bcount">${n}×</span>
-        </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(n/catMax)*100}%"></div></div>
-      </div>
-    `).join("");
-
-  const days7 = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    days7.push({ key, label: d.toLocaleDateString("fr-FR", { weekday: "short" }), n: activity[key] || 0 });
-  }
-  const wMax = Math.max(...days7.map(d => d.n), 1);
-  document.getElementById("weeklyBars").innerHTML = days7.map(d => `
-    <div class="bar-row">
-      <div class="bar-head">
-        <span class="bcode">${d.label}</span>
-        <span class="bcount">${d.n}</span>
-      </div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(d.n/wMax)*100}%"></div></div>
-    </div>
-  `).join("");
 }
 
-document.getElementById("exportBtn").onclick = () => {
-  const rows = [["Code", "Libellé", "Catégorie", "Nombre de rejets", "Action"]];
-  Object.entries(stats).sort((a, b) => b[1] - a[1]).forEach(([code, n]) => {
-    const d = CODES[code] || { libelle: "", cat: "", action: "" };
-    rows.push([code, d.libelle, d.cat, n, d.action]);
+function wireFicheActions(code){
+  const btn = document.getElementById('ficheSave');
+  if(!btn) return;
+  btn.addEventListener('click',()=>{
+    const praticien = document.getElementById('fichePraticien').value;
+    const montantRaw = document.getElementById('ficheMontant').value;
+    const montant = montantRaw ? parseFloat(montantRaw) : null;
+    state.rejets.unshift({
+      id: uid(),
+      code,
+      praticien,
+      montant,
+      statut:'en_attente',
+      dateCreation: new Date().toISOString(),
+      dateTraitement: null,
+      commentaire:''
+    });
+    save();
+    btn.textContent='✓ Enregistré';
+    btn.disabled = true;
+    setTimeout(()=>{ btn.textContent='Enregistrer ce rejet'; btn.disabled=false; }, 1400);
   });
-  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `dentaops_rejets_${new Date().toISOString().slice(0,10)}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-};
+}
 
-document.getElementById("resetBtn").onclick = () => {
-  if (confirm("⚠️ Effacer toutes les statistiques et l'historique ?")) {
-    stats = {}; history = []; activity = {};
-    saveAll();
-    renderStats();
-    renderHistory();
+function renderAllCodes(){
+  const list = document.getElementById('allCodesList');
+  const codes = Object.keys(state.codes).sort();
+  if(codes.length===0){
+    list.innerHTML = '<div class="empty">Aucun code. Importe ton fichier dans Réglages.</div>';
+    return;
   }
-};
+  list.innerHTML = codes.map(c=>{
+    const v = state.codes[c];
+    return `<div class="rejet">
+      <div class="rejet-info">
+        <div class="rejet-code">Code ${esc(c)}</div>
+        <div class="rejet-meta">${esc(v.action||'')}</div>
+      </div>
+      <div class="rejet-actions">
+        <button class="btn small secondary" data-code="${esc(c)}">Voir</button>
+      </div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('button[data-code]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      searchInput.value = b.dataset.code;
+      searchInput.dispatchEvent(new Event('input'));
+      window.scrollTo({top:0,behavior:'smooth'});
+    });
+  });
+}
 
-input.addEventListener("input", e => render(e.target.value));
-renderHistory();
-render("");
+/* =========================================================
+   TAB REJETS
+   ========================================================= */
+let currentFilter = 'all';
+
+document.querySelectorAll('.filter-bar button').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-bar button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    currentFilter = b.dataset.filter;
+    renderRejets();
+  });
+});
+
+function renderMiniStats(){
+  const total = state.rejets.length;
+  const attente = state.rejets.filter(r=>r.statut==='en_attente').length;
+  const traites = state.rejets.filter(r=>r.statut==='traite').length;
+  document.getElementById('miniStats').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Total</div></div>
+    <div class="stat"><div class="num" style="color:var(--warn)">${attente}</div><div class="lbl">En attente</div></div>
+    <div class="stat"><div class="num" style="color:var(--ok)">${traites}</div><div class="lbl">Traités</div></div>
+  `;
+}
+
+function renderRejets(){
+  renderMiniStats();
+  const list = document.getElementById('rejetsList');
+  let items = state.rejets.slice();
+  if(currentFilter!=='all') items = items.filter(r=>r.statut===currentFilter);
+  items.sort((a,b)=> new Date(b.dateCreation) - new Date(a.dateCreation));
+
+  if(items.length===0){
+    list.innerHTML = '<div class="empty">Aucun rejet enregistré.</div>';
+    return;
+  }
+  list.innerHTML = items.map(r=>{
+    const code = state.codes[r.code] || {};
+    const badge = r.statut==='traite'
+      ? '<span class="badge ok">🟢 Traité</span>'
+      : '<span class="badge warn">🟠 En attente</span>';
+    const prat = r.praticien ? `<span class="tag">${esc(r.praticien)}</span>` : '';
+    const montant = (r.montant!=null && !isNaN(r.montant)) ? ` · ${r.montant.toFixed(2)} €` : '';
+    const dateT = r.dateTraitement ? ` · traité le ${r.dateTraitement.slice(0,10)}` : '';
+    return `<div class="rejet">
+      <div class="rejet-info">
+        <div class="rejet-code">Code ${esc(r.code)} ${badge}</div>
+        <div class="rejet-meta">${esc(code.action||'(code inconnu)')}</div>
+        <div class="rejet-meta">${prat} ${montant}${dateT}</div>
+      </div>
+      <div class="rejet-actions">
+        ${r.statut==='en_attente'
+          ? `<button class="btn small" data-act="traite" data-id="${r.id}">Marquer traité</button>`
+          : `<button class="btn small secondary" data-act="attente" data-id="${r.id}">Remettre en attente</button>`}
+        <button class="btn small danger" data-act="del" data-id="${r.id}">Supprimer</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('button[data-act]').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const id = b.dataset.id, act = b.dataset.act;
+      const r = state.rejets.find(x=>x.id===id);
+      if(!r) return;
+      if(act==='traite'){ r.statut='traite'; r.dateTraitement = new Date().toISOString(); }
+      if(act==='attente'){ r.statut='en_attente'; r.dateTraitement = null; }
+      if(act==='del'){ if(!confirm('Supprimer ce rejet ?')) return; state.rejets = state.rejets.filter(x=>x.id!==id); }
+      save(); renderRejets();
+    });
+  });
+}
+
+/* =========================================================
+   TAB STATS
+   ========================================================= */
+function renderStats(){
+  const total = state.rejets.length;
+  const attente = state.rejets.filter(r=>r.statut==='en_attente').length;
+  const traites = state.rejets.filter(r=>r.statut==='traite').length;
+  const montantTotal = state.rejets.reduce((s,r)=> s + (r.montant||0), 0);
+  document.getElementById('globalStats').innerHTML = `
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Rejets total</div></div>
+    <div class="stat"><div class="num" style="color:var(--warn)">${attente}</div><div class="lbl">En attente</div></div>
+    <div class="stat"><div class="num" style="color:var(--ok)">${traites}</div><div class="lbl">Traités</div></div>
+    <div class="stat"><div class="num">${montantTotal.toFixed(0)} €</div><div class="lbl">Montant total</div></div>
+  `;
+
+  // Par praticien
+  const byPrat = {};
+  state.praticiens.forEach(p=> byPrat[p] = {total:0,attente:0,traites:0,montant:0});
+  byPrat['(non assigné)'] = {total:0,attente:0,traites:0,montant:0};
+  state.rejets.forEach(r=>{
+    const key = r.praticien || '(non assigné)';
+    if(!byPrat[key]) byPrat[key] = {total:0,attente:0,traites:0,montant:0};
+    byPrat[key].total++;
+    byPrat[key][r.statut==='traite'?'traites':'attente']++;
+    byPrat[key].montant += r.montant||0;
+  });
+  const pratRows = Object.entries(byPrat).filter(([_,v])=>v.total>0).map(([k,v])=>`
+    <tr><td><b>${esc(k)}</b></td><td>${v.total}</td>
+    <td style="color:var(--warn)">${v.attente}</td>
+    <td style="color:var(--ok)">${v.traites}</td>
+    <td>${v.montant.toFixed(2)} €</td></tr>`).join('');
+  document.getElementById('statsByPraticien').innerHTML = pratRows
+    ? `<table><thead><tr><th>Praticien</th><th>Total</th><th>En attente</th><th>Traités</th><th>Montant</th></tr></thead><tbody>${pratRows}</tbody></table>`
+    : '<div class="empty">Aucune donnée.</div>';
+
+  // Par code
+  const byCode = {};
+  state.rejets.forEach(r=>{
+    byCode[r.code] = byCode[r.code] || {total:0, montant:0, action:(state.codes[r.code]||{}).action||''};
+    byCode[r.code].total++;
+    byCode[r.code].montant += r.montant||0;
+  });
+  const codeRows = Object.entries(byCode).sort((a,b)=> b[1].total-a[1].total).slice(0,20).map(([k,v])=>`
+    <tr><td><b>${esc(k)}</b></td><td>${esc(v.action)}</td><td>${v.total}</td><td>${v.montant.toFixed(2)} €</td></tr>
+  `).join('');
+  document.getElementById('statsByCode').innerHTML = codeRows
+    ? `<table><thead><tr><th>Code</th><th>Action</th><th>Occurrences</th><th>Montant</th></tr></thead><tbody>${codeRows}</tbody></table>`
+    : '<div class="empty">Aucune donnée.</div>';
+}
+
+/* =========================================================
+   TAB REGLAGES
+   ========================================================= */
+function renderSettings(){
+  // Praticiens list
+  document.getElementById('praticiensList').innerHTML = state.praticiens.length
+    ? state.praticiens.map(p=>`<span class="tag">${esc(p)} <a href="#" data-rm="${esc(p)}" style="color:var(--danger);text-decoration:none;margin-left:4px;">✕</a></span>`).join('')
+    : '<div class="empty">Aucun praticien.</div>';
+  document.querySelectorAll('a[data-rm]').forEach(a=>{
+    a.addEventListener('click',(e)=>{
+      e.preventDefault();
+      const p = a.dataset.rm;
+      if(!confirm(`Supprimer ${p} ?`)) return;
+      state.praticiens = state.praticiens.filter(x=>x!==p);
+      save(); renderSettings();
+    });
+  });
+}
+
+document.getElementById('addPraticien').addEventListener('click',()=>{
+  const v = document.getElementById('newPraticien').value.trim().toUpperCase();
+  if(!v) return;
+  if(state.praticiens.includes(v)){ alert('Déjà présent.'); return; }
+  state.praticiens.push(v);
+  document.getElementById('newPraticien').value='';
+  save(); renderSettings();
+});
+
+document.getElementById('importCodes').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    try{
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+      let count = 0;
+      rows.forEach(r=>{
+        const code = String(r.code || r.Code || r.CODE || '').trim();
+        if(!code) return;
+        state.codes[code] = {
+          action: String(r.action || r.Action || '').trim(),
+          cause: String(r.cause || r.Cause || '').trim(),
+          qui: String(r.qui || r.Qui || '').trim(),
+          delai: r.delai || r.Delai || '',
+          pieces: String(r.pieces || r.Pieces || r.Pièces || '').split(',').map(s=>s.trim()).filter(Boolean),
+          risque: String(r.risque || r.Risque || '').trim()
+        };
+        count++;
+      });
+      save();
+      document.getElementById('importCodesStatus').textContent = `✓ ${count} codes importés.`;
+      renderAllCodes();
+    }catch(err){
+      document.getElementById('importCodesStatus').textContent = '✗ Erreur : '+err.message;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+});
+
+function download(filename, text){
+  const blob = new Blob([text], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('exportCodes').addEventListener('click',()=>{
+  const rows = [['code','action','cause','qui','delai','pieces','risque']];
+  Object.entries(state.codes).forEach(([c,v])=>{
+    rows.push([c, v.action||'', v.cause||'', v.qui||'', v.delai||'',
+      Array.isArray(v.pieces)?v.pieces.join(' | '):(v.pieces||''), v.risque||'']);
+  });
+  download('codes_rejets.csv', rows.map(r=>r.map(csvCell).join(';')).join('\n'));
+});
+
+document.getElementById('exportRejets').addEventListener('click',()=>{
+  const rows = [['code','action','praticien','statut','date_creation','date_traitement','montant','commentaire']];
+  state.rejets.forEach(r=>{
+    const code = state.codes[r.code] || {};
+    rows.push([r.code, code.action||'', r.praticien||'', r.statut,
+      (r.dateCreation||'').slice(0,10), (r.dateTraitement||'').slice(0,10),
+      r.montant!=null?r.montant:'', r.commentaire||'']);
+  });
+  download('rejets.csv', rows.map(r=>r.map(csvCell).join(';')).join('\n'));
+});
+
+function csvCell(v){
+  const s = String(v==null?'':v);
+  return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
+}
+
+document.getElementById('loadSample').addEventListener('click',()=>{
+  Object.assign(state.codes, SAMPLE_CODES);
+  save(); renderAllCodes(); renderSettings();
+  alert('10 codes d\'exemple chargés.');
+});
+
+document.getElementById('resetAll').addEventListener('click',()=>{
+  if(!confirm('Tout réinitialiser ? Les codes, rejets et praticiens seront effacés.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  state = {codes:{}, rejets:[], praticiens:['P1','P2','P3']};
+  save(); renderAllCodes(); renderRejets(); renderStats(); renderSettings();
+});
+
+/* ---------- util ---------- */
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+/* ---------- init ---------- */
+load();
+renderAllCodes();
+renderMiniStats();
+renderSettings();
+searchInput.focus();
 </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mentions légales & Confidentialité — DentaOps Rejets</title>
+<style>
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:#f1f5f9;color:#0f172a;line-height:1.65;margin:0;padding:0;}
+  header{background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;padding:24px 20px;}
+  header .inner{max-width:820px;margin:0 auto;}
+  header h1{font-size:22px;margin:0;}
+  header p{margin:6px 0 0;opacity:.85;font-size:14px;}
+  main{max-width:820px;margin:0 auto;padding:28px 20px 60px;}
+  .card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:22px;margin-bottom:18px;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);}
+  h2{font-size:17px;color:#0f766e;margin:0 0 12px;}
+  h3{font-size:14px;color:#0f766e;margin:16px 0 6px;}
+  p,li{font-size:14px;color:#334155;}
+  ul{padding-left:20px;margin:8px 0;}
+  a{color:#0d9488;}
+  .back{display:inline-block;margin-bottom:16px;color:#0d9488;text-decoration:none;font-size:14px;font-weight:600;}
+  .back:hover{text-decoration:underline;}
+  .note{background:#f0fdfa;border-left:4px solid #0d9488;padding:12px 14px;border-radius:8px;
+    font-size:13px;color:#0f766e;margin:12px 0;}
+  footer{text-align:center;font-size:12px;color:#64748b;padding:20px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="inner">
+    <h1>Mentions légales & Politique de confidentialité</h1>
+    <p>DentaOps Rejets — application interne de gestion des rejets</p>
+  </div>
+</header>
+
+<main>
+
+  <a href="index.html" class="back">← Retour à l'application</a>
+
+  <div class="card">
+    <h2>1. Éditeur de l'application</h2>
+    <p>
+      <b>Nom de l'établissement :</b> [À COMPLÉTER]<br>
+      <b>Adresse :</b> [À COMPLÉTER]<br>
+      <b>Numéro SIRET :</b> [À COMPLÉTER]<br>
+      <b>Responsable de publication :</b> [À COMPLÉTER]<br>
+      <b>Contact :</b> [À COMPLÉTER — email professionnel]
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>2. Hébergement</h2>
+    <p>
+      L'application est hébergée par <b>GitHub Pages</b> — GitHub, Inc.,<br>
+      88 Colin P. Kelly Jr. Street, San Francisco, CA 94107, États-Unis.<br>
+      Site : <a href="https://pages.github.com" target="_blank" rel="noopener">pages.github.com</a>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>3. Objet de l'application</h2>
+    <p>
+      DentaOps Rejets est un outil interne destiné à aider l'équipe de l'établissement à
+      identifier et traiter les rejets de facturation dentaire à partir de leur code.
+      Elle fournit, pour chaque code, la procédure de traitement à suivre.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>4. Données traitées</h2>
+    <div class="note">
+      Cette application ne collecte, ne transmet et ne stocke <b>aucune donnée personnelle</b>
+      sur un serveur.
+    </div>
+    <h3>Ce qui est stocké</h3>
+    <ul>
+      <li>Les codes de rejets et leurs procédures de traitement</li>
+      <li>Le statut d'un rejet (en attente / traité)</li>
+      <li>Un identifiant praticien <b>anonyme</b> (ex. P1, P2, P3)</li>
+      <li>Le montant associé, sans lien avec un patient</li>
+    </ul>
+    <h3>Où</h3>
+    <p>
+      Toutes ces informations sont enregistrées <b>localement dans le navigateur</b>
+      de l'utilisateur (technologie <i>localStorage</i>). Elles ne quittent jamais l'appareil
+      et ne sont transmises à aucun serveur, ni à l'éditeur, ni à un tiers.
+    </p>
+    <h3>Ce qui n'est PAS traité</h3>
+    <ul>
+      <li>Aucun nom de patient</li>
+      <li>Aucune donnée de santé</li>
+      <li>Aucun nom de praticien (uniquement des codes anonymes)</li>
+      <li>Aucune donnée transmise à un serveur</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>5. Cookies et journaux techniques</h2>
+    <p>
+      L'application n'utilise <b>aucun cookie</b> de mesure d'audience, de publicité ou de
+      traçage. L'hébergeur GitHub Pages peut, pour des raisons techniques et de sécurité,
+      journaliser les adresses IP des visiteurs. Ce traitement relève de GitHub et est
+      encadré par sa propre politique de confidentialité :
+      <a href="https://docs.github.com/fr/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">GitHub Privacy Statement</a>.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>6. Vos droits</h2>
+    <p>
+      L'application ne traitant aucune donnée personnelle identifiable, elle n'entraîne
+      aucune collecte au sens du RGPD. Si vous souhaitez exercer un droit d'accès, de
+      rectification ou d'effacement sur des données gérées par l'établissement en dehors
+      de cette application, contactez : <b>[À COMPLÉTER — email du responsable]</b>.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>7. Propriété intellectuelle</h2>
+    <p>
+      L'application et son contenu sont la propriété de l'éditeur. Toute reproduction,
+      diffusion ou utilisation en dehors du cadre interne de l'établissement est interdite
+      sans autorisation préalable.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>8. Modification</h2>
+    <p>
+      La présente page peut être mise à jour à tout moment. La version en vigueur est
+      celle publiée sur cette page.
+    </p>
+    <p style="font-size:12px;color:#64748b;margin-top:14px;">
+      Dernière mise à jour : [DATE À COMPLÉTER]
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  DentaOps Rejets — application interne
+</footer>
+
 </body>
 </html>
