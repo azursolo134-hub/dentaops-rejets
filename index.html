@@ -4,100 +4,174 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DentaOps Rejets</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d9488">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <style>
   :root{
-    --bg:#f1f5f9; --card:#ffffff; --text:#0f172a; --muted:#64748b;
+    --bg:#f8fafc; --card:#ffffff; --text:#0f172a; --muted:#64748b;
     --primary:#0d9488; --primary-dark:#0f766e;
     --warn:#f59e0b; --ok:#10b981; --danger:#ef4444;
-    --border:#e2e8f0; --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+    --border:#e5e7eb; --shadow-sm:0 1px 2px rgba(0,0,0,.04);
+    --shadow:0 4px 12px rgba(15,23,42,.06);
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;}
-  header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
-    padding:18px 20px;box-shadow:var(--shadow);position:sticky;top:0;z-index:10;}
-  .header-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
-  .logo{font-size:24px;}
-  h1{font-size:20px;font-weight:700;letter-spacing:-.3px;}
-  h1 span{font-weight:400;opacity:.85;font-size:14px;margin-left:6px;}
-  nav{max-width:1100px;margin:14px auto 0;display:flex;gap:6px;flex-wrap:wrap;}
-  nav button{background:rgba(255,255,255,.15);color:#fff;border:0;padding:8px 14px;
-    border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:.15s;}
-  nav button:hover{background:rgba(255,255,255,.25);}
-  nav button.active{background:#fff;color:var(--primary-dark);font-weight:600;}
-  .header-links{max-width:1100px;margin:10px auto 0;font-size:12px;text-align:right;}
-  .header-links a{color:rgba(255,255,255,.9);text-decoration:none;margin-left:12px;}
-  .header-links a:hover{text-decoration:underline;}
-  main{max-width:1100px;margin:0 auto;padding:24px 20px 60px;}
-  .tab{display:none;} .tab.active{display:block;}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:12px;
-    padding:20px;box-shadow:var(--shadow);margin-bottom:16px;}
-  h2{font-size:17px;margin-bottom:14px;color:var(--primary-dark);}
-  label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px;font-weight:500;}
-  input,select,textarea{width:100%;padding:11px 14px;border:1px solid var(--border);
-    border-radius:8px;font-size:15px;font-family:inherit;background:#fff;transition:.15s;}
-  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.12);}
-  button.btn{background:var(--primary);color:#fff;border:0;padding:11px 18px;border-radius:8px;
-    font-size:15px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit;}
+    background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;}
+  header{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20;}
+  .header-inner{max-width:1080px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:12px;}
+  .logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .brand h1{font-size:16px;font-weight:700;letter-spacing:-.2px;}
+  .brand p{font-size:12px;color:var(--muted);}
+  .header-links{margin-left:auto;font-size:13px;}
+  .header-links a{color:var(--muted);text-decoration:none;}
+  .header-links a:hover{color:var(--primary);}
+  nav{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:65px;z-index:19;}
+  .nav-inner{max-width:1080px;margin:0 auto;padding:0 20px;display:flex;gap:4px;overflow-x:auto;}
+  nav button{background:transparent;border:0;padding:14px 16px;font-size:14px;font-weight:500;
+    color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;
+    font-family:inherit;white-space:nowrap;}
+  nav button:hover{color:var(--text);}
+  nav button.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600;}
+  main{max-width:1080px;margin:0 auto;padding:28px 20px 80px;}
+  .tab{display:none;animation:fadeIn .2s ease-out;}
+  .tab.active{display:block;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    padding:24px;box-shadow:var(--shadow-sm);margin-bottom:20px;}
+  h2{font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px;
+    display:flex;align-items:center;gap:8px;}
+  h2 .count{font-size:12px;font-weight:500;color:var(--muted);background:#f1f5f9;
+    padding:2px 8px;border-radius:20px;}
+  .search-wrap{position:relative;}
+  .search-wrap svg{position:absolute;left:18px;top:50%;transform:translateY(-50%);
+    color:var(--muted);pointer-events:none;}
+  .search-input{width:100%;padding:18px 18px 18px 52px;border:2px solid var(--border);
+    border-radius:12px;font-size:17px;font-family:inherit;background:#fff;
+    transition:.15s;font-weight:500;}
+  .search-input:focus{outline:0;border-color:var(--primary);box-shadow:0 0 0 4px rgba(13,148,136,.1);}
+  .search-input::placeholder{color:#cbd5e1;font-weight:400;}
+  .hint{font-size:13px;color:var(--muted);margin-top:10px;}
+  .fiche{background:#fff;border:1px solid var(--border);border-radius:14px;
+    overflow:hidden;margin-top:20px;box-shadow:var(--shadow);}
+  .fiche-header{padding:20px 24px;background:linear-gradient(135deg,#f0fdfa,#fff);
+    border-bottom:1px solid var(--border);}
+  .fiche-header h3{font-size:22px;font-weight:700;color:var(--text);margin-bottom:8px;
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .fiche-header .id-badge{font-size:12px;font-weight:600;background:var(--primary);
+    color:#fff;padding:4px 10px;border-radius:6px;letter-spacing:.3px;}
+  .fiche-header .famille{font-size:13px;color:var(--muted);margin-top:4px;}
+  .fiche-body{padding:24px;}
+  .section{margin-bottom:22px;}
+  .section:last-child{margin-bottom:0;}
+  .section-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.8px;margin-bottom:8px;}
+  .action-block{background:#f0fdfa;border-left:4px solid var(--primary);
+    border-radius:10px;padding:16px 18px;}
+  .action-block ol{list-style:none;counter-reset:step;}
+  .action-block li{counter-increment:step;position:relative;padding:6px 0 6px 32px;
+    font-size:15px;color:var(--text);}
+  .action-block li::before{content:counter(step);position:absolute;left:0;top:6px;
+    width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+  .info-item{background:#f8fafc;border-radius:10px;padding:12px 14px;}
+  .info-item .lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;
+    letter-spacing:.5px;margin-bottom:4px;}
+  .info-item .val{font-size:14px;color:var(--text);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;
+    font-size:12px;font-weight:600;}
+  .badge.haute{background:#fee2e2;color:#991b1b;}
+  .badge.moyenne{background:#fef3c7;color:#92400e;}
+  .badge.basse{background:#dbeafe;color:#1e40af;}
+  .badge.warn{background:#fef3c7;color:#92400e;}
+  .badge.ok{background:#d1fae5;color:#065f46;}
+  .fiche-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:20px;
+    padding-top:20px;border-top:1px dashed var(--border);}
+  .fiche-actions > div{flex:1;min-width:150px;}
+  .famille-block{background:#fff;border:1px solid var(--border);border-radius:12px;
+    margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-sm);}
+  .famille-header{padding:16px 20px;cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:12px;transition:.15s;user-select:none;}
+  .famille-header:hover{background:#f8fafc;}
+  .famille-title{font-size:15px;font-weight:600;color:var(--text);display:flex;
+    align-items:center;gap:10px;}
+  .famille-color{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;}
+  .famille-count{font-size:12px;font-weight:500;color:var(--muted);
+    background:#f1f5f9;padding:3px 10px;border-radius:20px;}
+  .chevron{color:var(--muted);transition:transform .2s;}
+  .famille-block.open .chevron{transform:rotate(90deg);}
+  .famille-body{display:none;border-top:1px solid var(--border);}
+  .famille-block.open .famille-body{display:block;}
+  .rejet-row{padding:14px 20px;border-bottom:1px solid #f1f5f9;cursor:pointer;
+    transition:.1s;display:flex;align-items:center;gap:14px;}
+  .rejet-row:last-child{border-bottom:0;}
+  .rejet-row:hover{background:#f8fafc;}
+  .rejet-id{font-size:12px;font-weight:700;color:var(--primary);flex-shrink:0;
+    min-width:58px;letter-spacing:.3px;}
+  .rejet-motif{flex:1;font-size:14px;color:var(--text);}
+  .rejet-motif small{display:block;color:var(--muted);font-size:12px;margin-top:2px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;margin-bottom:20px;}
+  .stat{background:#fff;border:1px solid var(--border);border-radius:12px;
+    padding:18px;text-align:center;box-shadow:var(--shadow-sm);}
+  .stat .num{font-size:28px;font-weight:700;color:var(--text);line-height:1.1;}
+  .stat .lbl{font-size:11px;color:var(--muted);margin-top:4px;
+    text-transform:uppercase;letter-spacing:.5px;font-weight:600;}
+  .stat.warn .num{color:var(--warn);}
+  .stat.ok .num{color:var(--ok);}
+  .rejet-card{background:#fff;border:1px solid var(--border);border-radius:12px;
+    padding:16px 18px;margin-bottom:10px;display:flex;justify-content:space-between;
+    align-items:center;gap:14px;flex-wrap:wrap;box-shadow:var(--shadow-sm);}
+  .rejet-card-info{flex:1;min-width:200px;}
+  .rejet-card-code{font-weight:700;color:var(--text);font-size:15px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .rejet-card-meta{font-size:13px;color:var(--muted);margin-top:4px;}
+  .rejet-card-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .filter-bar{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .filter-bar button{background:#fff;color:var(--muted);border:1px solid var(--border);
+    padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;font-weight:500;
+    transition:.15s;font-family:inherit;}
+  .filter-bar button:hover{color:var(--text);border-color:#cbd5e1;}
+  .filter-bar button.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;
+    font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  input,select,textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);
+    border-radius:9px;font-size:14px;font-family:inherit;background:#fff;transition:.15s;}
+  input:focus,select:focus,textarea:focus{outline:0;border-color:var(--primary);
+    box-shadow:0 0 0 3px rgba(13,148,136,.1);}
+  button.btn{background:var(--primary);color:#fff;border:0;padding:11px 18px;
+    border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;
+    font-family:inherit;}
   button.btn:hover{background:var(--primary-dark);}
-  button.btn.secondary{background:#e2e8f0;color:var(--text);}
-  button.btn.secondary:hover{background:#cbd5e1;}
+  button.btn.secondary{background:#fff;color:var(--text);border:1.5px solid var(--border);}
+  button.btn.secondary:hover{background:#f8fafc;border-color:#cbd5e1;}
   button.btn.danger{background:var(--danger);}
   button.btn.danger:hover{background:#dc2626;}
   button.btn.small{padding:7px 12px;font-size:13px;}
-  .search-input{font-size:20px;padding:16px 18px;font-weight:600;letter-spacing:1px;}
-  .result{margin-top:16px;}
-  .fiche{border-left:4px solid var(--primary);background:#f0fdfa;border-radius:10px;padding:18px;margin-top:16px;}
-  .fiche h3{font-size:20px;color:var(--primary-dark);margin-bottom:6px;}
-  .fiche .famille{font-size:13px;color:var(--muted);margin-bottom:12px;}
-  .fiche .action{background:#fff;border:1px solid var(--primary);border-radius:8px;
-    padding:14px;font-size:15px;color:var(--text);margin-bottom:14px;line-height:1.6;}
-  .fiche .action b{color:var(--primary-dark);display:block;margin-bottom:6px;font-size:13px;text-transform:uppercase;letter-spacing:.5px;}
-  .fiche dl{display:grid;grid-template-columns:160px 1fr;gap:8px 14px;font-size:14px;}
-  .fiche dt{color:var(--muted);font-weight:500;}
-  .fiche dd{color:var(--text);}
-  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;}
-  .badge.warn{background:#fef3c7;color:#92400e;}
-  .badge.ok{background:#d1fae5;color:#065f46;}
-  .badge.haute{background:#fee2e2;color:#991b1b;}
-  .badge.moyenne{background:#fef3c7;color:#92400e;}
-  .badge.basse{background:#e0e7ff;color:#3730a3;}
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px;}
-  .stat{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
-  .stat .num{font-size:26px;font-weight:700;color:var(--primary-dark);}
-  .stat .lbl{font-size:12px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px;}
-  .rejet{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;
-    display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
-  .rejet-info{flex:1;min-width:200px;}
-  .rejet-code{font-weight:700;color:var(--primary-dark);font-size:15px;}
-  .rejet-meta{font-size:13px;color:var(--muted);margin-top:2px;}
-  .rejet-actions{display:flex;gap:6px;flex-wrap:wrap;}
-  .filter-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
-  .filter-bar button{background:#e2e8f0;color:var(--text);border:0;padding:7px 14px;
-    border-radius:8px;font-size:13px;cursor:pointer;font-weight:500;}
-  .filter-bar button.active{background:var(--primary);color:#fff;}
-  table{width:100%;border-collapse:collapse;font-size:14px;}
-  th,td{padding:10px;text-align:left;border-bottom:1px solid var(--border);}
-  th{background:#f8fafc;font-weight:600;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px;}
-  tr:hover td{background:#f8fafc;}
-  .empty{text-align:center;color:var(--muted);padding:30px 10px;font-style:italic;}
-  .hint{font-size:12px;color:var(--muted);margin-top:6px;}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;}
   .row > *{flex:1;min-width:150px;}
-  .tag{display:inline-block;background:#e2e8f0;color:var(--text);padding:2px 8px;
-    border-radius:6px;font-size:12px;margin-right:4px;margin-bottom:4px;}
-  .famille-tag{display:inline-block;background:#dbeafe;color:#1e40af;padding:2px 8px;
-    border-radius:6px;font-size:11px;font-weight:600;margin-bottom:4px;}
-  .hidden{display:none!important;}
-  footer{text-align:center;font-size:12px;color:var(--muted);padding:20px;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th,td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--border);}
+  th{font-weight:600;color:var(--muted);font-size:11px;
+    text-transform:uppercase;letter-spacing:.5px;}
+  tr:last-child td{border-bottom:0;}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-style:italic;}
+  .tag{display:inline-block;background:#f1f5f9;color:var(--text);padding:3px 10px;
+    border-radius:20px;font-size:12px;margin:2px 4px 2px 0;font-weight:500;}
+  footer{text-align:center;font-size:12px;color:var(--muted);padding:24px;}
   footer a{color:var(--primary);text-decoration:none;}
   footer a:hover{text-decoration:underline;}
   @media(max-width:600px){
-    h1{font-size:17px;} h1 span{display:none;}
-    .fiche dl{grid-template-columns:1fr;}
-    .fiche dt{margin-top:8px;}
-    nav button{font-size:13px;padding:7px 11px;}
+    .header-inner{padding:12px 16px;}
+    main{padding:20px 16px 60px;}
+    .card{padding:18px;border-radius:12px;}
+    .fiche-body{padding:18px;}
+    .fiche-header{padding:16px 18px;}
+    .fiche-header h3{font-size:18px;}
+    .search-input{font-size:15px;padding:15px 15px 15px 46px;}
+    .search-wrap svg{left:15px;}
   }
 </style>
 </head>
@@ -106,41 +180,54 @@
 <header>
   <div class="header-inner">
     <div class="logo">🦷</div>
-    <h1>DentaOps Rejets <span>· gestion interne</span></h1>
-  </div>
-  <nav>
-    <button data-tab="search" class="active">🔍 Rechercher</button>
-    <button data-tab="rejets">📋 Rejets</button>
-    <button data-tab="stats">📊 Stats</button>
-    <button data-tab="settings">⚙️ Réglages</button>
-  </nav>
-  <div class="header-links">
-    <a href="mentions.html">Mentions légales & Confidentialité</a>
+    <div class="brand">
+      <h1>DentaOps Rejets</h1>
+      <p>Gestion interne · 55 motifs référencés</p>
+    </div>
+    <div class="header-links">
+      <a href="mentions.html">Mentions légales</a>
+    </div>
   </div>
 </header>
+
+<nav>
+  <div class="nav-inner">
+    <button data-tab="search" class="active">🔍 Rechercher</button>
+    <button data-tab="catalogue">📚 Catalogue</button>
+    <button data-tab="rejets">📋 Mes rejets</button>
+    <button data-tab="stats">📊 Statistiques</button>
+    <button data-tab="settings">⚙️ Réglages</button>
+  </div>
+</nav>
 
 <main>
 
   <section id="tab-search" class="tab active">
     <div class="card">
-      <h2>Rechercher un rejet</h2>
-      <label for="searchInput">Saisis le code officiel ou l'ID interne (ex : RJ-001)</label>
-      <input id="searchInput" class="search-input" placeholder="Ex : RJ-001 ou 2600 700" autocomplete="off">
-      <div class="hint" id="searchHint"></div>
-      <div id="searchResult" class="result"></div>
+      <h2>🔍 Rechercher un rejet</h2>
+      <div class="search-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input id="searchInput" class="search-input" placeholder="Code, ID (RJ-001) ou motif..." autocomplete="off">
+      </div>
+      <div class="hint" id="searchHint">Saisis un code officiel, un ID interne ou un mot-clé du motif.</div>
+      <div id="searchResult"></div>
     </div>
+  </section>
 
+  <section id="tab-catalogue" class="tab">
     <div class="card">
-      <h2>Tous les rejets référencés (<span id="countCodes">0</span>)</h2>
-      <div id="allCodesList"></div>
+      <h2>📚 Catalogue complet <span class="count" id="catalogueCount">0</span></h2>
+      <div class="hint" style="margin-bottom:16px;">Clique sur une famille pour déplier. Clique sur un rejet pour voir la procédure.</div>
+      <div id="catalogueList"></div>
     </div>
   </section>
 
   <section id="tab-rejets" class="tab">
     <div class="stat-grid" id="miniStats"></div>
-
     <div class="card">
-      <h2>Rejets enregistrés</h2>
+      <h2>📋 Rejets enregistrés</h2>
       <div class="filter-bar">
         <button data-filter="all" class="active">Tous</button>
         <button data-filter="en_attente">🟠 En attente</button>
@@ -152,58 +239,50 @@
 
   <section id="tab-stats" class="tab">
     <div class="stat-grid" id="globalStats"></div>
-
     <div class="card">
-      <h2>Par famille de rejet</h2>
+      <h2>Par famille</h2>
       <div id="statsByFamille"></div>
     </div>
-
     <div class="card">
       <h2>Par praticien</h2>
       <div id="statsByPraticien"></div>
     </div>
-
     <div class="card">
-      <h2>Top rejets enregistrés</h2>
+      <h2>Top rejets</h2>
       <div id="statsByCode"></div>
     </div>
   </section>
 
   <section id="tab-settings" class="tab">
-
     <div class="card">
-      <h2>📥 Importer des codes (Excel / CSV)</h2>
-      <p class="hint" style="margin-bottom:12px">Colonnes : <b>code, famille, motif, origine, cause, action, prevention, resoumission, delai, priorite, pieces</b></p>
+      <h2>📥 Importer des codes</h2>
+      <p class="hint" style="margin-bottom:12px;">Colonnes : <b>code, famille, motif, origine, cause, action, prevention, resoumission, delai, priorite, pieces</b></p>
       <input type="file" id="importCodes" accept=".xlsx,.xls,.csv">
       <div class="hint" id="importCodesStatus"></div>
     </div>
-
     <div class="card">
       <h2>📤 Exporter</h2>
       <div class="row">
-        <button class="btn secondary" id="exportCodes">Exporter les codes (CSV)</button>
-        <button class="btn secondary" id="exportRejets">Exporter les rejets (CSV)</button>
+        <button class="btn secondary" id="exportCodes">Codes (CSV)</button>
+        <button class="btn secondary" id="exportRejets">Rejets (CSV)</button>
       </div>
     </div>
-
     <div class="card">
       <h2>👥 Praticiens (codes anonymes)</h2>
-      <p class="hint" style="margin-bottom:12px">Utilise P1, P2, P3… Toi seule connais la correspondance.</p>
+      <p class="hint" style="margin-bottom:12px;">Utilise P1, P2, P3… Toi seule connais la correspondance.</p>
       <div class="row">
         <input id="newPraticien" placeholder="Ex : P4">
         <button class="btn" id="addPraticien" style="flex:0 0 auto">Ajouter</button>
       </div>
-      <div id="praticiensList" style="margin-top:14px"></div>
+      <div id="praticiensList" style="margin-top:16px;"></div>
     </div>
-
     <div class="card">
       <h2>🧪 Données</h2>
       <div class="row">
-        <button class="btn secondary" id="loadBase">Recharger la base de 55 rejets</button>
-        <button class="btn danger" id="resetAll">Réinitialiser toute l'app</button>
+        <button class="btn secondary" id="loadBase">Recharger la base (55 rejets)</button>
+        <button class="btn danger" id="resetAll">Réinitialiser</button>
       </div>
     </div>
-
   </section>
 
 </main>
@@ -213,132 +292,68 @@
 </footer>
 
 <script>
-/* =========================================================
-   DentaOps Rejets — Base officielle 55 rejets (RJ-001 à RJ-055)
-   Stockage local (localStorage). Aucun envoi réseau.
-   ========================================================= */
-
-const STORAGE_KEY = 'dentaops_rejets_v4';
+const STORAGE_KEY = 'dentaops_rejets_v5';
 
 const BASE_REJETS = {
 "RJ-001": {famille:"1-Droits & bénéficiaire", motif:"Droits AMO non ouverts / fermés à la date des soins", origine:"AMO", cause:"Carte Vitale non mise à jour, changement de situation, fin de droits", action:"1. Contrôler les droits via ADRi / consultation de droits. 2. Demander carte Vitale à jour ou attestation. 3. Refacturer si droits retrouvés. 4. Sinon facturer le patient.", prevention:"Mettre à jour la carte Vitale à chaque RDV. Consulter les droits avant soins.", resoumission:"Oui (après régularisation)", delai:5, priorite:"Haute", pieces:"Attestation de droits / carte Vitale à jour"},
-
 "RJ-002": {famille:"1-Droits & bénéficiaire", motif:"NIR du patient ou de l'ouvrant droit erroné", origine:"AMO", cause:"Erreur de saisie NIR, confusion assuré / ayant droit", action:"1. Vérifier NIR + clé sur carte Vitale ou attestation. 2. Corriger la fiche patient. 3. Retransmettre la facture.", prevention:"Lecture carte Vitale systématique, pas de saisie manuelle.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"Carte Vitale / attestation"},
-
 "RJ-003": {famille:"1-Droits & bénéficiaire", motif:"Bénéficiaire inconnu (date de naissance / rang gémellaire)", origine:"AMO", cause:"Date de naissance ou rang gémellaire incorrect, ayant droit mal rattaché", action:"1. Comparer les données avec la carte Vitale. 2. Corriger date de naissance / rang. 3. Refacturer.", prevention:"Contrôle d'identité à l'accueil.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"Carte Vitale, pièce d'identité"},
-
 "RJ-004": {famille:"1-Droits & bénéficiaire", motif:"Caisse / régime / centre de gestion incorrect", origine:"AMO", cause:"Patient a changé de caisse ou de régime", action:"1. Demander une attestation récente. 2. Mettre à jour caisse, centre et régime. 3. Retransmettre.", prevention:"Vérifier la caisse à chaque mise à jour de carte.", resoumission:"Oui", delai:5, priorite:"Moyenne", pieces:"Attestation de droits"},
-
 "RJ-005": {famille:"1-Droits & bénéficiaire", motif:"Mutation de caisse en cours", origine:"AMO", cause:"Droits en transfert entre deux caisses", action:"1. Contacter le patient pour connaître la caisse actuelle. 2. Refacturer à la bonne caisse. 3. Sinon facture papier.", prevention:"Anticiper si patient signale un déménagement ou changement d'emploi.", resoumission:"Oui", delai:10, priorite:"Moyenne", pieces:"Attestation"},
-
 "RJ-006": {famille:"1-Droits & bénéficiaire", motif:"Ayant droit mineur non rattaché / rattachement erroné", origine:"AMO", cause:"Enfant non déclaré sur la carte d'un parent ou sur la bonne carte", action:"1. Demander au parent de rattacher l'enfant (compte ameli). 2. Utiliser la carte de l'enfant s'il en a une. 3. Refacturer.", prevention:"Demander la carte Vitale du bon parent.", resoumission:"Oui", delai:7, priorite:"Moyenne", pieces:"Attestation avec ayants droit"},
-
 "RJ-007": {famille:"1-Droits & bénéficiaire", motif:"Soins en mode dégradé sans justificatif de droits", origine:"AMO", cause:"FSE dégradée sans carte Vitale ou attestation", action:"1. Obtenir l'attestation de droits. 2. Sinon émettre feuille de soins papier. 3. Facturer le patient en attendant.", prevention:"Exiger carte ou attestation avant tout tiers payant.", resoumission:"Selon justificatif", delai:5, priorite:"Haute", pieces:"Attestation, feuille de soins"},
-
 "RJ-008": {famille:"1-Droits & bénéficiaire", motif:"Complémentaire santé solidaire (C2S) non valide / expirée", origine:"AMO/AMC", cause:"Droits C2S arrivés à échéance ou non renouvelés", action:"1. Vérifier la validité C2S sur l'attestation. 2. Si expirée, facturer selon droits actuels. 3. Informer le patient.", prevention:"Contrôler la date de fin C2S à chaque RDV.", resoumission:"Selon droits", delai:5, priorite:"Haute", pieces:"Attestation C2S"},
-
 "RJ-009": {famille:"1-Droits & bénéficiaire", motif:"Accident du travail / maladie professionnelle : n° ou date manquant", origine:"AMO", cause:"Déclaration AT/MP non renseignée dans la facture", action:"1. Demander au patient la feuille d'accident du travail. 2. Renseigner n° et date. 3. Refacturer en AT/MP ou en maladie.", prevention:"Demander systématiquement le volet AT si accident déclaré.", resoumission:"Oui", delai:7, priorite:"Moyenne", pieces:"Feuille AT / AT-MP"},
-
 "RJ-010": {famille:"1-Droits & bénéficiaire", motif:"Bénéficiaire décédé / droits clos", origine:"AMO", cause:"Facture émise sur un patient décédé ou droits clos", action:"1. Vérifier les dates. 2. Facturer à la succession si soins antérieurs au décès. 3. Contacter la caisse.", prevention:"Contrôle de date de soins avant envoi.", resoumission:"Selon cas", delai:10, priorite:"Basse", pieces:"Acte de décès éventuel"},
-
 "RJ-011": {famille:"1-Droits & bénéficiaire", motif:"Aide Médicale de l'État (AME) : acte non couvert / accord manquant", origine:"AMO", cause:"Acte hors panier AME ou nécessitant accord préalable", action:"1. Vérifier la liste des soins pris en charge. 2. Demander accord préalable si requis. 3. Sinon informer le patient.", prevention:"Contrôler les droits AME avant devis.", resoumission:"Selon accord", delai:10, priorite:"Moyenne", pieces:"Attestation AME, accord préalable"},
-
 "RJ-012": {famille:"2-Professionnel & structure", motif:"N° RPPS / ADELI du praticien erroné ou non reconnu", origine:"AMO", cause:"Erreur paramétrage logiciel ou changement de numéro", action:"1. Contrôler le N° RPPS dans le logiciel. 2. Corriger le paramétrage. 3. Retransmettre.", prevention:"Vérifier le paramétrage à chaque changement de praticien.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"Carte CPS"},
-
 "RJ-013": {famille:"2-Professionnel & structure", motif:"N° de structure / FINESS / n° AM incorrect", origine:"AMO", cause:"Mauvais numéro de facturation ou de structure", action:"1. Vérifier le n° de facturation avec la caisse. 2. Corriger dans le logiciel. 3. Retransmettre.", prevention:"Archiver les numéros officiels du cabinet.", resoumission:"Oui", delai:5, priorite:"Haute", pieces:"Courrier d'immatriculation"},
-
 "RJ-014": {famille:"2-Professionnel & structure", motif:"Praticien non conventionné ou secteur inadéquat", origine:"AMO", cause:"Secteur ou adhésion conventionnelle non à jour", action:"1. Contrôler la situation conventionnelle (secteur, option) avec la CPAM. 2. Adapter la facturation.", prevention:"Mettre à jour la situation à chaque évolution.", resoumission:"Selon situation", delai:10, priorite:"Moyenne", pieces:"Attestation CPAM"},
-
-"RJ-015": {famille:"2-Professionnel & structure", motif:"Spécialité du praticien incompatible avec l'acte", origine:"AMO", cause:"Acte d'une autre spécialité (ex. ODF ou chirurgie orale) facturé sous mauvaise spécialité", action:"1. Vérifier la spécialité déclarée. 2. Corriger le code spécialité. 3. Retransmettre.", prevention:"Paramétrer la spécialité de chaque praticien.", resoumission:"Oui", delai:5, priorite:"Moyenne", pieces:"Qualification ordinale"},
-
+"RJ-015": {famille:"2-Professionnel & structure", motif:"Spécialité du praticien incompatible avec l'acte", origine:"AMO", cause:"Acte d'une autre spécialité facturé sous mauvaise spécialité", action:"1. Vérifier la spécialité déclarée. 2. Corriger le code spécialité. 3. Retransmettre.", prevention:"Paramétrer la spécialité de chaque praticien.", resoumission:"Oui", delai:5, priorite:"Moyenne", pieces:"Qualification ordinale"},
 "RJ-016": {famille:"2-Professionnel & structure", motif:"Remplaçant non déclaré ou mal identifié", origine:"AMO", cause:"Facturation du remplaçant sous le n° du titulaire (ou inverse)", action:"1. Vérifier le contrat de remplacement. 2. Refacturer sous le bon n° ou avec mention remplaçant.", prevention:"Déclarer le remplaçant avant sa première FSE.", resoumission:"Oui", delai:7, priorite:"Moyenne", pieces:"Contrat de remplacement"},
-
 "RJ-017": {famille:"2-Professionnel & structure", motif:"Prescripteur manquant (acte radio / examens sur prescription)", origine:"AMO", cause:"Prescripteur absent sur acte nécessitant ordonnance", action:"1. Renseigner le prescripteur ou le médecin traitant. 2. Retransmettre.", prevention:"Contrôle bloquant dans le logiciel.", resoumission:"Oui", delai:3, priorite:"Basse", pieces:"Ordonnance"},
-
 "RJ-018": {famille:"3-Acte & tarification", motif:"Code acte inconnu / non valide à la date des soins", origine:"AMO", cause:"Code CCAM obsolète, mal saisi ou non applicable au praticien", action:"1. Vérifier le code dans la CCAM en vigueur. 2. Corriger. 3. Retransmettre.", prevention:"Mettre à jour la base d'actes du logiciel à chaque version.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"—"},
-
-"RJ-019": {famille:"3-Acte & tarification", motif:"Acte non pris en charge (hors nomenclature)", origine:"AMO", cause:"Acte non remboursable AMO (ex. certains actes esthétiques ou implantaires)", action:"1. Facturer au patient. 2. Vérifier la prise en charge AMC (devis).", prevention:"Informer le patient dès le devis.", resoumission:"Non (AMO)", delai:2, priorite:"Moyenne", pieces:"Devis signé"},
-
+"RJ-019": {famille:"3-Acte & tarification", motif:"Acte non pris en charge (hors nomenclature)", origine:"AMO", cause:"Acte non remboursable AMO (esthétique, implantaire)", action:"1. Facturer au patient. 2. Vérifier la prise en charge AMC (devis).", prevention:"Informer le patient dès le devis.", resoumission:"Non (AMO)", delai:2, priorite:"Moyenne", pieces:"Devis signé"},
 "RJ-020": {famille:"3-Acte & tarification", motif:"Base de remboursement / tarif incorrect", origine:"AMO", cause:"Tarif obsolète ou erreur de panier / secteur", action:"1. Mettre à jour le tarif du logiciel. 2. Recalculer. 3. Retransmettre.", prevention:"Contrôler la table des tarifs après chaque avenant.", resoumission:"Oui", delai:5, priorite:"Haute", pieces:"—"},
-
 "RJ-021": {famille:"3-Acte & tarification", motif:"Dépassement non autorisé / honoraires supérieurs aux limites (panier)", origine:"AMO/AMC", cause:"Honoraires facturés au-delà des honoraires limites de facturation du panier RAC 0 / modéré", action:"1. Ramener les honoraires à la limite autorisée. 2. Refaire devis et facture. 3. Informer le patient.", prevention:"Contrôle automatique honoraires / HLF avant devis.", resoumission:"Oui", delai:5, priorite:"Haute", pieces:"Devis conforme"},
-
 "RJ-022": {famille:"3-Acte & tarification", motif:"Modificateur / coefficient erroné", origine:"AMO", cause:"Modificateur non applicable ou mal saisi (âge, urgence, jour férié)", action:"1. Vérifier conditions d'application. 2. Corriger le modificateur. 3. Retransmettre.", prevention:"Formation équipe aux règles de modificateurs.", resoumission:"Oui", delai:3, priorite:"Moyenne", pieces:"—"},
-
 "RJ-023": {famille:"3-Acte & tarification", motif:"Association d'actes non autorisée / tarification dégressive non appliquée", origine:"AMO", cause:"Actes associés sans application des règles d'association CCAM", action:"1. Contrôler les règles d'association. 2. Ajuster les lignes. 3. Retransmettre.", prevention:"Utiliser l'aide à l'association du logiciel.", resoumission:"Oui", delai:5, priorite:"Haute", pieces:"—"},
-
 "RJ-024": {famille:"3-Acte & tarification", motif:"Doublon : acte déjà facturé", origine:"AMO", cause:"Même acte, même date, même dent déjà remboursé", action:"1. Vérifier l'historique du patient et le relevé de paiement. 2. Annuler le doublon. 3. Contester si erreur de la caisse.", prevention:"Contrôle de doublons avant télétransmission.", resoumission:"Non (si vrai doublon)", delai:2, priorite:"Moyenne", pieces:"Relevé de paiement"},
-
-"RJ-025": {famille:"3-Acte & tarification", motif:"Fréquence / délai de renouvellement non respecté (ex. prothèse)", origine:"AMO", cause:"Acte renouvelé dans un délai inférieur à la règle de prise en charge", action:"1. Vérifier l'historique et la règle applicable (nomenclature / convention). 2. Justifier ou facturer le patient.", prevention:"Consulter l'historique avant devis (service en ligne).", resoumission:"Selon justification", delai:10, priorite:"Moyenne", pieces:"Justificatif médical"},
-
+"RJ-025": {famille:"3-Acte & tarification", motif:"Fréquence / délai de renouvellement non respecté (ex. prothèse)", origine:"AMO", cause:"Acte renouvelé dans un délai inférieur à la règle de prise en charge", action:"1. Vérifier l'historique et la règle applicable. 2. Justifier ou facturer le patient.", prevention:"Consulter l'historique avant devis (service en ligne).", resoumission:"Selon justification", delai:10, priorite:"Moyenne", pieces:"Justificatif médical"},
 "RJ-026": {famille:"3-Acte & tarification", motif:"Âge hors limite (ex. dispositif M'T Dents 3 à 24 ans)", origine:"AMO", cause:"Prévention facturée hors tranche d'âge ou hors âges clés", action:"1. Vérifier l'âge à la date des soins et la règle. 2. Facturer en examen classique si adapté.", prevention:"Contrôle bloquant de l'âge dans le logiciel.", resoumission:"Selon cas", delai:3, priorite:"Basse", pieces:"—"},
-
 "RJ-027": {famille:"3-Acte & tarification", motif:"N° de dent / localisation manquant ou incohérent", origine:"AMO", cause:"Acte nécessitant localisation sans n° de dent", action:"1. Renseigner la dent ou le secteur. 2. Vérifier cohérence avec le schéma dentaire. 3. Retransmettre.", prevention:"Champ dent obligatoire dans le logiciel.", resoumission:"Oui", delai:2, priorite:"Haute", pieces:"Schéma dentaire"},
-
 "RJ-028": {famille:"3-Acte & tarification", motif:"Demande d'accord préalable (DEP) absente", origine:"AMO", cause:"Acte soumis à DEP facturé sans accord", action:"1. Déposer la DEP avec devis et documents. 2. Attendre l'accord avant réalisation. 3. Refacturer après accord.", prevention:"Liste des actes soumis à DEP intégrée au workflow devis.", resoumission:"Oui (après accord)", delai:15, priorite:"Haute", pieces:"DEP, devis, radios"},
-
-"RJ-029": {famille:"3-Acte & tarification", motif:"Accord préalable refusé ou en attente", origine:"AMO", cause:"Réponse défavorable ou silence prolongé de la caisse", action:"1. Relancer le service médical. 2. Si refus, informer le patient et envisager recours / alternative thérapeutique.", prevention:"Anticiper les délais de réponse.", resoumission:"Selon réponse", delai:15, priorite:"Haute", pieces:"Courrier de refus / relance"},
-
+"RJ-029": {famille:"3-Acte & tarification", motif:"Accord préalable refusé ou en attente", origine:"AMO", cause:"Réponse défavorable ou silence prolongé de la caisse", action:"1. Relancer le service médical. 2. Si refus, informer le patient et envisager recours.", prevention:"Anticiper les délais de réponse.", resoumission:"Selon réponse", delai:15, priorite:"Haute", pieces:"Courrier de refus / relance"},
 "RJ-030": {famille:"3-Acte & tarification", motif:"Accord préalable dépassé (validité expirée)", origine:"AMO", cause:"Soins réalisés après la date de validité", action:"1. Demander prolongation ou nouvelle DEP selon situation.", prevention:"Suivre les échéances des accords.", resoumission:"Selon réponse", delai:10, priorite:"Moyenne", pieces:"Accord initial"},
-
 "RJ-031": {famille:"3-Acte & tarification", motif:"Date de soins incohérente (future, antérieure à la pose, hors période)", origine:"AMO", cause:"Erreur de saisie ou date de pose prothèse non conforme", action:"1. Corriger la date réelle de l'acte. 2. Retransmettre.", prevention:"Contrôle de cohérence dates devis / pose.", resoumission:"Oui", delai:2, priorite:"Moyenne", pieces:"Dossier patient"},
-
 "RJ-032": {famille:"3-Acte & tarification", motif:"Justificatif manquant (devis normalisé, radio, prescription)", origine:"AMO/AMC", cause:"Pièce exigée non jointe", action:"1. Joindre la pièce par le canal indiqué (portail, courrier). 2. Relancer l'organisme.", prevention:"Check-list de pièces par type d'acte.", resoumission:"Oui", delai:5, priorite:"Moyenne", pieces:"Devis, radios, ordonnance"},
-
 "RJ-033": {famille:"3-Acte & tarification", motif:"Panier 100 % Santé : classification incorrecte (RAC 0 / modéré / libre)", origine:"AMO/AMC", cause:"Dent ou matériau non conforme au panier déclaré", action:"1. Vérifier matériau, dent et panier. 2. Corriger la classification. 3. Recalculer. 4. Informer le patient.", prevention:"Table de correspondance dent/matériau/panier à jour.", resoumission:"Oui", delai:5, priorite:"Haute", pieces:"Devis 100 % Santé"},
-
 "RJ-034": {famille:"3-Acte & tarification", motif:"Orthodontie (ODF) : forfait semestriel ou accord préalable non conforme", origine:"AMO", cause:"Forfait facturé hors semestre ou avant accord, ou patient hors condition d'âge", action:"1. Vérifier l'accord et la période du forfait. 2. Facturer en fin de semestre. 3. Régulariser.", prevention:"Calendrier des forfaits dans le logiciel.", resoumission:"Selon accord", delai:15, priorite:"Moyenne", pieces:"Accord préalable ODF"},
-
 "RJ-035": {famille:"4-Technique FSE / flux", motif:"Rejet technique FSE : signature / certificat invalide", origine:"Technique", cause:"Problème de lecteur, certificat CPS ou télétransmission", action:"1. Réinitialiser le lecteur. 2. Vérifier certificat. 3. Retransmettre ou passer en dégradé.", prevention:"Maintenance du lecteur et des certificats.", resoumission:"Oui", delai:1, priorite:"Haute", pieces:"—"},
-
 "RJ-036": {famille:"4-Technique FSE / flux", motif:"Carte CPS / e-CPS expirée ou bloquée", origine:"Technique", cause:"Code PIN bloqué ou carte à renouveler", action:"1. Débloquer / commander une nouvelle carte. 2. Utiliser e-CPS en attendant.", prevention:"Calendrier d'échéances des cartes.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"—"},
-
 "RJ-037": {famille:"4-Technique FSE / flux", motif:"Fichier non conforme à la norme SESAM-Vitale / version logiciel obsolète", origine:"Technique", cause:"Version du logiciel non à jour ou erreur de paramétrage", action:"1. Mettre à jour le logiciel et ses référentiels. 2. Contacter l'éditeur. 3. Retransmettre.", prevention:"Mises à jour automatiques activées.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"Ticket éditeur"},
-
 "RJ-038": {famille:"4-Technique FSE / flux", motif:"Montants incohérents (AMO + AMC + patient ≠ total)", origine:"Technique", cause:"Mauvais calcul de part ou arrondi, honoraire modifié après facture", action:"1. Recalculer les parts. 2. Corriger honoraires. 3. Retransmettre.", prevention:"Verrouiller la facture après validation.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"—"},
-
 "RJ-039": {famille:"4-Technique FSE / flux", motif:"Lot / bordereau en erreur ou en double", origine:"Technique", cause:"Lot envoyé deux fois ou partiellement rejeté", action:"1. Identifier les factures rejetées. 2. Renvoyer uniquement les non traitées. 3. Contrôler les doublons.", prevention:"Rapprocher envois et accusés de réception.", resoumission:"Oui", delai:2, priorite:"Moyenne", pieces:"Accusé de réception"},
-
 "RJ-040": {famille:"4-Technique FSE / flux", motif:"Délai de transmission dépassé / prescription (2 ans)", origine:"AMO", cause:"Facture envoyée trop tard", action:"1. Vérifier la date des soins. 2. Demander dérogation à la caisse si justifié. 3. Sinon la perte revient au cabinet.", prevention:"Suivi hebdomadaire des factures non télétransmises.", resoumission:"Selon justification", delai:5, priorite:"Haute", pieces:"Preuve d'envoi / justificatif"},
-
 "RJ-041": {famille:"4-Technique FSE / flux", motif:"Feuille de soins papier illisible ou non signée", origine:"AMO", cause:"Document incomplet", action:"1. Compléter / faire signer. 2. Réexpédier ou numériser selon procédure.", prevention:"Contrôle avant envoi.", resoumission:"Oui", delai:5, priorite:"Basse", pieces:"Feuille de soins"},
-
 "RJ-042": {famille:"4-Technique FSE / flux", motif:"Double facturation AMO / AMC (même soin réclamé deux fois)", origine:"AMO/AMC", cause:"Doublon FSE + papier ou facture dupliquée", action:"1. Annuler la facture en trop. 2. Rembourser l'organisme si indu. 3. Bloquer les doublons.", prevention:"Interdire facture papier si FSE faite.", resoumission:"Non", delai:2, priorite:"Moyenne", pieces:"Relevé de paiement"},
-
 "RJ-043": {famille:"5-Complémentaire (AMC)", motif:"Droits AMC non ouverts / contrat résilié", origine:"AMC", cause:"Contrat résilié ou impayé de cotisation", action:"1. Demander attestation de mutuelle à jour. 2. Facturer le patient si contrat inactif.", prevention:"Vérification des droits AMC avant soins.", resoumission:"Selon droits", delai:5, priorite:"Haute", pieces:"Carte tiers payant / attestation"},
-
 "RJ-044": {famille:"5-Complémentaire (AMC)", motif:"Garantie du contrat ne couvre pas l'acte (hors garantie)", origine:"AMC", cause:"Acte absent du contrat ou niveau insuffisant", action:"1. Demander une prise en charge avant soins. 2. Informer le patient du reste à charge. 3. Facturer le patient.", prevention:"Devis envoyé à l'AMC avant les soins.", resoumission:"Non (part AMC)", delai:3, priorite:"Moyenne", pieces:"Devis, prise en charge"},
-
 "RJ-045": {famille:"5-Complémentaire (AMC)", motif:"Plafond annuel dentaire atteint", origine:"AMC", cause:"Garantie annuelle consommée", action:"1. Vérifier le solde auprès de l'AMC. 2. Facturer le patient pour le dépassement.", prevention:"Consulter le solde avant devis.", resoumission:"Non (au-delà du plafond)", delai:3, priorite:"Moyenne", pieces:"Relevé de décompte"},
-
 "RJ-046": {famille:"5-Complémentaire (AMC)", motif:"Délai de carence non respecté", origine:"AMC", cause:"Soins dentaires avant fin de la période de carence", action:"1. Vérifier la date d'adhésion. 2. Informer le patient. 3. Facturer le patient.", prevention:"Contrôler la date d'adhésion avant devis.", resoumission:"Non", delai:3, priorite:"Basse", pieces:"Attestation d'adhésion"},
-
 "RJ-047": {famille:"5-Complémentaire (AMC)", motif:"Prise en charge demandée non obtenue / devis non validé", origine:"AMC", cause:"Devis non transmis ou en attente de validation", action:"1. Relancer l'AMC avec devis et pièces. 2. Attendre confirmation avant d'appliquer le tiers payant.", prevention:"Conditionner le tiers payant à l'accord écrit.", resoumission:"Oui (après accord)", delai:7, priorite:"Moyenne", pieces:"Devis, prise en charge"},
-
 "RJ-048": {famille:"5-Complémentaire (AMC)", motif:"Identifiant AMC / organisme destinataire incorrect", origine:"AMC", cause:"Mauvais routage, identifiant de contrat erroné ou changement d'opérateur", action:"1. Contrôler identifiant et opérateur de tiers payant. 2. Corriger. 3. Retransmettre.", prevention:"Mise à jour des données AMC à chaque lecture.", resoumission:"Oui", delai:3, priorite:"Haute", pieces:"Carte tiers payant"},
-
 "RJ-049": {famille:"5-Complémentaire (AMC)", motif:"Dépassement non pris en charge (contrat responsable)", origine:"AMC", cause:"Dépassements limités par le contrat responsable", action:"1. Facturer le patient pour la part non couverte. 2. Informer sur garanties.", prevention:"Expliquer le reste à charge dès le devis.", resoumission:"Non", delai:3, priorite:"Basse", pieces:"Décompte AMC"},
-
 "RJ-050": {famille:"5-Complémentaire (AMC)", motif:"Reste à charge zéro (RAC 0) non respecté", origine:"AMC", cause:"Prestation hors panier RAC 0 facturée en RAC 0", action:"1. Rectifier la facturation (panier modéré/libre). 2. Informer le patient. 3. Refaire devis.", prevention:"Contrôle de panier avant tiers payant.", resoumission:"Oui", delai:5, priorite:"Haute", pieces:"Devis conforme"},
-
 "RJ-051": {famille:"5-Complémentaire (AMC)", motif:"Hors réseau de soins / convention tiers payant absente", origine:"AMC", cause:"Praticien non adhérent au réseau ou convention inexistante", action:"1. Vérifier le réseau. 2. Facturer le patient pour remboursement direct, ou adhérer.", prevention:"Cartographier les conventions AMC du cabinet.", resoumission:"Non", delai:5, priorite:"Basse", pieces:"Liste des réseaux"},
-
 "RJ-052": {famille:"6-Paiement & rapprochement", motif:"Paiement partiel ou rejet partiel de la facture", origine:"AMO/AMC", cause:"Une partie des lignes refusée", action:"1. Analyser le retour par ligne. 2. Corriger lignes en rejet. 3. Refacturer le solde.", prevention:"Rapprochement ligne à ligne.", resoumission:"Oui", delai:5, priorite:"Moyenne", pieces:"Relevé détaillé"},
-
 "RJ-053": {famille:"6-Paiement & rapprochement", motif:"Notification d'indu / récupération après paiement", origine:"AMO/AMC", cause:"Erreur découverte après remboursement", action:"1. Analyser le courrier. 2. Contester avec justificatifs si erreur de la caisse. 3. Sinon rembourser ou compenser.", prevention:"Archiver les justificatifs de chaque soin.", resoumission:"Non", delai:10, priorite:"Haute", pieces:"Courrier d'indu, dossier patient"},
-
 "RJ-054": {famille:"6-Paiement & rapprochement", motif:"Retour NOEMIE absent / paiement non rapproché", origine:"AMO", cause:"Retour non reçu ou non intégré", action:"1. Contrôler la réception. 2. Relancer la caisse après délai normal. 3. Vérifier paramétrage de réception.", prevention:"Rapprochement bancaire hebdomadaire.", resoumission:"Oui", delai:10, priorite:"Moyenne", pieces:"Relevé bancaire"},
-
 "RJ-055": {famille:"6-Paiement & rapprochement", motif:"Motif de rejet non renseigné / non identifié", origine:"AMO/AMC", cause:"Retour sans libellé clair", action:"1. Contacter l'organisme pour obtenir le motif. 2. Documenter. 3. Mettre à jour cette base.", prevention:"Capitaliser les cas dans la base.", resoumission:"Selon motif", delai:5, priorite:"Basse", pieces:"Courrier / échange"}
 };
 
-let state = {
-  codes: {},
-  rejets: [],
-  praticiens: ['P1','P2','P3']
-};
+let state = { codes:{}, rejets:[], praticiens:['P1','P2','P3'] };
 
-/* ---------- Persistance ---------- */
 function load(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -352,116 +367,121 @@ function load(){
       state.codes = {...BASE_REJETS};
       save();
     }
-  }catch(e){ console.error('Load error',e); state.codes = {...BASE_REJETS}; }
+  }catch(e){ console.error(e); state.codes = {...BASE_REJETS}; }
 }
 function save(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-  catch(e){ console.error('Save error',e); }
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.error(e); }
 }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-/* ---------- Navigation ---------- */
 document.querySelectorAll('nav button').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
     b.classList.add('active');
     document.getElementById('tab-'+b.dataset.tab).classList.add('active');
+    if(b.dataset.tab==='catalogue') renderCatalogue();
     if(b.dataset.tab==='rejets') renderRejets();
     if(b.dataset.tab==='stats') renderStats();
     if(b.dataset.tab==='settings') renderSettings();
-    if(b.dataset.tab==='search') renderAllCodes();
   });
 });
 
-/* =========================================================
-   TAB RECHERCHE
-   ========================================================= */
 const searchInput = document.getElementById('searchInput');
 const searchResult = document.getElementById('searchResult');
 const searchHint = document.getElementById('searchHint');
 
 searchInput.addEventListener('input', ()=>{
   const q = searchInput.value.trim().toUpperCase();
-  if(!q){ searchResult.innerHTML=''; searchHint.textContent=''; return; }
-  // Recherche : d'abord par ID exact, puis par code officiel, puis par motif partiel
-  let key = null, entry = null;
-  if(state.codes[q]){ key=q; entry=state.codes[q]; }
-  else {
-    for(const k in state.codes){
-      const c = state.codes[k];
-      if((c.code && c.code.toUpperCase()===q) || k.toUpperCase()===q){ key=k; entry=c; break; }
-    }
-  }
-  // Recherche floue par motif si rien trouvé
-  if(!entry){
-    const matches = Object.entries(state.codes).filter(([k,c])=>
-      (c.motif||'').toUpperCase().includes(q) || (c.code||'').toUpperCase().includes(q)
-    );
-    if(matches.length===1){ key=matches[0][0]; entry=matches[0][1]; }
-    else if(matches.length>1){
-      searchHint.textContent = `${matches.length} résultats trouvés :`;
-      searchResult.innerHTML = matches.slice(0,15).map(([k,c])=>
-        `<div class="rejet"><div class="rejet-info">
-          <div class="rejet-code">${esc(k)} ${c.code?'· Code '+esc(c.code):''}</div>
-          <div class="rejet-meta">${esc(c.motif||'')}</div>
-        </div><div class="rejet-actions">
-          <button class="btn small secondary" data-show="${esc(k)}">Voir</button>
-        </div></div>`
-      ).join('');
-      searchResult.querySelectorAll('button[data-show]').forEach(b=>{
-        b.addEventListener('click',()=>{ searchInput.value=b.dataset.show; searchInput.dispatchEvent(new Event('input')); });
-      });
-      return;
-    }
-  }
-  if(entry){
+  if(!q){ searchResult.innerHTML=''; searchHint.innerHTML='Saisis un code officiel, un ID interne ou un mot-clé du motif.'; return; }
+  if(state.codes[q]){
     searchHint.textContent='';
-    searchResult.innerHTML = renderFiche(key, entry);
-    wireFicheActions(key);
-  } else {
-    searchHint.textContent = `Aucun rejet trouvé pour "${q}".`;
-    searchResult.innerHTML='';
+    searchResult.innerHTML = renderFiche(q, state.codes[q]);
+    wireFicheActions(q);
+    return;
   }
+  const matches = Object.entries(state.codes).filter(([k,c])=>
+    (c.motif||'').toUpperCase().includes(q) ||
+    (c.code||'').toUpperCase().includes(q) ||
+    (c.famille||'').toUpperCase().includes(q)
+  );
+  if(matches.length===0){
+    searchHint.innerHTML=`<span style="color:var(--danger);">Aucun rejet pour "${esc(q)}"</span>`;
+    searchResult.innerHTML='';
+    return;
+  }
+  if(matches.length===1){
+    searchHint.textContent='';
+    searchResult.innerHTML = renderFiche(matches[0][0], matches[0][1]);
+    wireFicheActions(matches[0][0]);
+    return;
+  }
+  searchHint.innerHTML=`<b>${matches.length}</b> rejets correspondent :`;
+  searchResult.innerHTML = `<div style="margin-top:14px;">${matches.slice(0,20).map(([k,c])=>`
+    <div class="rejet-card" style="cursor:pointer;" data-open="${esc(k)}">
+      <div class="rejet-card-info">
+        <div class="rejet-card-code">${esc(k)}</div>
+        <div class="rejet-card-meta">${esc(c.motif||'')}</div>
+      </div>
+      <div class="rejet-card-actions"><button class="btn small secondary">Voir</button></div>
+    </div>`).join('')}</div>`;
+  searchResult.querySelectorAll('[data-open]').forEach(el=>{
+    el.addEventListener('click',()=>{
+      searchInput.value = el.dataset.open;
+      searchInput.dispatchEvent(new Event('input'));
+    });
+  });
 });
 
 function renderFiche(key, c){
-  const pieces = c.pieces || '—';
-  const prioClass = (c.priorite||'').toLowerCase().includes('haute')?'haute':(c.priorite||'').toLowerCase().includes('moyenne')?'moyenne':'basse';
-  const actionHtml = (c.action||'').split(/\d+\.\s*/).filter(Boolean).map(s=>'• '+esc(s.trim())).join('<br>') || esc(c.action||'—');
+  const prio = (c.priorite||'').toLowerCase();
+  const prioClass = prio.includes('haute')?'haute':prio.includes('moyenne')?'moyenne':'basse';
+  const steps = (c.action||'').split(/\d+\.\s*/).filter(Boolean);
+  const actionHtml = steps.length > 1
+    ? `<ol>${steps.map(s=>`<li>${esc(s.trim().replace(/\.$/,''))}</li>`).join('')}</ol>`
+    : `<p style="font-size:15px;color:var(--text);">${esc(c.action||'—')}</p>`;
   return `
-    <div class="fiche">
-      <h3>${esc(key)} ${c.code?'<span style="font-weight:400;color:var(--muted);font-size:14px;">· Code '+esc(c.code)+'</span>':''}</h3>
-      <div class="famille"><span class="famille-tag">${esc(c.famille||'')}</span> · Origine : <b>${esc(c.origine||'—')}</b></div>
-      <div style="margin-bottom:12px;font-size:15px;"><b>Motif :</b> ${esc(c.motif||'—')}</div>
-      <div class="action">
-        <b>Comment traiter le rejet</b>
-        ${actionHtml}
+  <div class="fiche">
+    <div class="fiche-header">
+      <h3>${esc(c.motif||'—')}</h3>
+      <div class="famille">
+        <span class="id-badge">${esc(key)}</span>
+        <span style="margin-left:8px;">${esc(c.famille||'')}</span>
+        <span style="margin-left:8px;color:#94a3b8;">· Origine : <b>${esc(c.origine||'—')}</b></span>
       </div>
-      <dl>
-        <dt>Cause probable</dt><dd>${esc(c.cause||'—')}</dd>
-        <dt>Prévention</dt><dd>${esc(c.prevention||'—')}</dd>
-        <dt>Resoumission</dt><dd>${esc(c.resoumission||'—')}</dd>
-        <dt>Délai cible</dt><dd>${c.delai ? esc(c.delai)+' jour(s) ouvrés' : '—'}</dd>
-        <dt>Priorité</dt><dd><span class="badge ${prioClass}">${esc(c.priorite||'—')}</span></dd>
-        <dt>Pièces à fournir</dt><dd>${esc(pieces)}</dd>
-      </dl>
-      <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
-        <div style="flex:1;min-width:140px;">
-          <label>Praticien (code anonyme)</label>
+    </div>
+    <div class="fiche-body">
+      <div class="section">
+        <div class="section-label">Comment traiter le rejet</div>
+        <div class="action-block">${actionHtml}</div>
+      </div>
+      <div class="section">
+        <div class="info-grid">
+          <div class="info-item"><div class="lbl">Cause probable</div><div class="val">${esc(c.cause||'—')}</div></div>
+          <div class="info-item"><div class="lbl">Prévention</div><div class="val">${esc(c.prevention||'—')}</div></div>
+          <div class="info-item"><div class="lbl">Pièces à fournir</div><div class="val">${esc(c.pieces||'—')}</div></div>
+          <div class="info-item"><div class="lbl">Resoumission</div><div class="val">${esc(c.resoumission||'—')}</div></div>
+          <div class="info-item"><div class="lbl">Délai cible</div><div class="val">${c.delai ? esc(c.delai)+' j ouvrés' : '—'}</div></div>
+          <div class="info-item"><div class="lbl">Priorité</div><div class="val"><span class="badge ${prioClass}">${esc(c.priorite||'—')}</span></div></div>
+        </div>
+      </div>
+      <div class="fiche-actions">
+        <div>
+          <label>Praticien (anonyme)</label>
           <select id="fichePraticien">
             <option value="">—</option>
             ${state.praticiens.map(p=>`<option value="${esc(p)}">${esc(p)}</option>`).join('')}
           </select>
         </div>
-        <div style="flex:1;min-width:140px;">
-          <label>Montant en jeu (€, optionnel)</label>
+        <div>
+          <label>Montant (€)</label>
           <input id="ficheMontant" type="number" step="0.01" placeholder="0.00">
         </div>
         <button class="btn" id="ficheSave" style="flex:0 0 auto;">Enregistrer ce rejet</button>
       </div>
     </div>
-  `;
+  </div>`;
 }
 
 function wireFicheActions(key){
@@ -472,11 +492,8 @@ function wireFicheActions(key){
     const montantRaw = document.getElementById('ficheMontant').value;
     const montant = montantRaw ? parseFloat(montantRaw) : null;
     state.rejets.unshift({
-      id: uid(), code: key, praticien, montant,
-      statut:'en_attente',
-      dateCreation: new Date().toISOString(),
-      dateTraitement: null,
-      commentaire:''
+      id: uid(), code: key, praticien, montant, statut:'en_attente',
+      dateCreation: new Date().toISOString(), dateTraitement: null, commentaire:''
     });
     save();
     btn.textContent='✓ Enregistré';
@@ -485,40 +502,60 @@ function wireFicheActions(key){
   });
 }
 
-function renderAllCodes(){
-  const list = document.getElementById('allCodesList');
-  const codes = Object.keys(state.codes).sort();
-  document.getElementById('countCodes').textContent = codes.length;
-  if(codes.length===0){
-    list.innerHTML = '<div class="empty">Aucun rejet. Importe ton fichier dans Réglages.</div>';
+function renderCatalogue(){
+  const list = document.getElementById('catalogueList');
+  document.getElementById('catalogueCount').textContent = Object.keys(state.codes).length + ' rejets';
+  const byFam = {};
+  Object.entries(state.codes).forEach(([k,c])=>{
+    const fam = c.famille || 'Autres';
+    byFam[fam] = byFam[fam] || [];
+    byFam[fam].push([k,c]);
+  });
+  const famKeys = Object.keys(byFam).sort();
+  if(famKeys.length===0){
+    list.innerHTML = '<div class="empty">Aucun rejet référencé.</div>';
     return;
   }
-  list.innerHTML = codes.map(c=>{
-    const v = state.codes[c];
-    return `<div class="rejet">
-      <div class="rejet-info">
-        <div class="rejet-code">${esc(c)} ${v.code?'· Code '+esc(v.code):''}</div>
-        <div class="rejet-meta"><span class="famille-tag">${esc(v.famille||'')}</span> ${esc(v.motif||'')}</div>
+  list.innerHTML = famKeys.map(fam=>{
+    const items = byFam[fam].sort((a,b)=>a[0].localeCompare(b[0]));
+    return `
+    <div class="famille-block" data-fam="${esc(fam)}">
+      <div class="famille-header">
+        <div class="famille-title">
+          <span class="famille-color"></span>
+          <span>${esc(fam)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="famille-count">${items.length}</span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+        </div>
       </div>
-      <div class="rejet-actions">
-        <button class="btn small secondary" data-code="${esc(c)}">Voir</button>
+      <div class="famille-body">
+        ${items.map(([k,c])=>`
+          <div class="rejet-row" data-open="${esc(k)}">
+            <div class="rejet-id">${esc(k)}</div>
+            <div class="rejet-motif">${esc(c.motif||'')}${c.code?`<small>Code : ${esc(c.code)}</small>`:''}</div>
+          </div>
+        `).join('')}
       </div>
     </div>`;
   }).join('');
-  list.querySelectorAll('button[data-code]').forEach(b=>{
-    b.addEventListener('click',()=>{
-      searchInput.value = b.dataset.code;
+  list.querySelectorAll('.famille-header').forEach(h=>{
+    h.addEventListener('click',()=>{ h.parentElement.classList.toggle('open'); });
+  });
+  const first = list.querySelector('.famille-block');
+  if(first) first.classList.add('open');
+  list.querySelectorAll('.rejet-row').forEach(r=>{
+    r.addEventListener('click',()=>{
+      document.querySelector('nav button[data-tab="search"]').click();
+      searchInput.value = r.dataset.open;
       searchInput.dispatchEvent(new Event('input'));
       window.scrollTo({top:0,behavior:'smooth'});
     });
   });
 }
 
-/* =========================================================
-   TAB REJETS
-   ========================================================= */
 let currentFilter = 'all';
-
 document.querySelectorAll('.filter-bar button').forEach(b=>{
   b.addEventListener('click',()=>{
     document.querySelectorAll('.filter-bar button').forEach(x=>x.classList.remove('active'));
@@ -534,8 +571,8 @@ function renderMiniStats(){
   const traites = state.rejets.filter(r=>r.statut==='traite').length;
   document.getElementById('miniStats').innerHTML = `
     <div class="stat"><div class="num">${total}</div><div class="lbl">Total</div></div>
-    <div class="stat"><div class="num" style="color:var(--warn)">${attente}</div><div class="lbl">En attente</div></div>
-    <div class="stat"><div class="num" style="color:var(--ok)">${traites}</div><div class="lbl">Traités</div></div>
+    <div class="stat warn"><div class="num">${attente}</div><div class="lbl">En attente</div></div>
+    <div class="stat ok"><div class="num">${traites}</div><div class="lbl">Traités</div></div>
   `;
 }
 
@@ -545,26 +582,25 @@ function renderRejets(){
   let items = state.rejets.slice();
   if(currentFilter!=='all') items = items.filter(r=>r.statut===currentFilter);
   items.sort((a,b)=> new Date(b.dateCreation) - new Date(a.dateCreation));
-
   if(items.length===0){
     list.innerHTML = '<div class="empty">Aucun rejet enregistré.</div>';
     return;
   }
   list.innerHTML = items.map(r=>{
-    const code = state.codes[r.code] || {};
+    const c = state.codes[r.code] || {};
     const badge = r.statut==='traite'
-      ? '<span class="badge ok">🟢 Traité</span>'
-      : '<span class="badge warn">🟠 En attente</span>';
+      ? '<span class="badge ok">Traité</span>'
+      : '<span class="badge warn">En attente</span>';
     const prat = r.praticien ? `<span class="tag">${esc(r.praticien)}</span>` : '';
     const montant = (r.montant!=null && !isNaN(r.montant)) ? ` · ${r.montant.toFixed(2)} €` : '';
     const dateT = r.dateTraitement ? ` · traité le ${r.dateTraitement.slice(0,10)}` : '';
-    return `<div class="rejet">
-      <div class="rejet-info">
-        <div class="rejet-code">${esc(r.code)} ${badge}</div>
-        <div class="rejet-meta">${esc(code.motif||'(rejet inconnu)')}</div>
-        <div class="rejet-meta">${prat} ${montant}${dateT}</div>
+    return `<div class="rejet-card">
+      <div class="rejet-card-info">
+        <div class="rejet-card-code">${esc(r.code)} ${badge}</div>
+        <div class="rejet-card-meta">${esc(c.motif||'')}</div>
+        <div class="rejet-card-meta">${prat}${montant}${dateT}</div>
       </div>
-      <div class="rejet-actions">
+      <div class="rejet-card-actions">
         ${r.statut==='en_attente'
           ? `<button class="btn small" data-act="traite" data-id="${r.id}">Marquer traité</button>`
           : `<button class="btn small secondary" data-act="attente" data-id="${r.id}">Remettre en attente</button>`}
@@ -572,36 +608,30 @@ function renderRejets(){
       </div>
     </div>`;
   }).join('');
-
   list.querySelectorAll('button[data-act]').forEach(b=>{
     b.addEventListener('click',()=>{
       const id = b.dataset.id, act = b.dataset.act;
       const r = state.rejets.find(x=>x.id===id);
       if(!r) return;
-      if(act==='traite'){ r.statut='traite'; r.dateTraitement = new Date().toISOString(); }
-      if(act==='attente'){ r.statut='en_attente'; r.dateTraitement = null; }
-      if(act==='del'){ if(!confirm('Supprimer ce rejet ?')) return; state.rejets = state.rejets.filter(x=>x.id!==id); }
+      if(act==='traite'){ r.statut='traite'; r.dateTraitement=new Date().toISOString(); }
+      if(act==='attente'){ r.statut='en_attente'; r.dateTraitement=null; }
+      if(act==='del'){ if(!confirm('Supprimer ce rejet ?')) return; state.rejets=state.rejets.filter(x=>x.id!==id); }
       save(); renderRejets();
     });
   });
 }
 
-/* =========================================================
-   TAB STATS
-   ========================================================= */
 function renderStats(){
   const total = state.rejets.length;
   const attente = state.rejets.filter(r=>r.statut==='en_attente').length;
   const traites = state.rejets.filter(r=>r.statut==='traite').length;
   const montantTotal = state.rejets.reduce((s,r)=> s + (r.montant||0), 0);
   document.getElementById('globalStats').innerHTML = `
-    <div class="stat"><div class="num">${total}</div><div class="lbl">Rejets total</div></div>
-    <div class="stat"><div class="num" style="color:var(--warn)">${attente}</div><div class="lbl">En attente</div></div>
-    <div class="stat"><div class="num" style="color:var(--ok)">${traites}</div><div class="lbl">Traités</div></div>
-    <div class="stat"><div class="num">${montantTotal.toFixed(0)} €</div><div class="lbl">Montant total</div></div>
+    <div class="stat"><div class="num">${total}</div><div class="lbl">Rejets</div></div>
+    <div class="stat warn"><div class="num">${attente}</div><div class="lbl">En attente</div></div>
+    <div class="stat ok"><div class="num">${traites}</div><div class="lbl">Traités</div></div>
+    <div class="stat"><div class="num">${montantTotal.toFixed(0)} €</div><div class="lbl">Montant</div></div>
   `;
-
-  // Par famille
   const byFam = {};
   state.rejets.forEach(r=>{
     const fam = (state.codes[r.code]||{}).famille || '(inconnue)';
@@ -616,10 +646,8 @@ function renderStats(){
     <td style="color:var(--ok)">${v.traites}</td>
     <td>${v.montant.toFixed(2)} €</td></tr>`).join('');
   document.getElementById('statsByFamille').innerHTML = famRows
-    ? `<table><thead><tr><th>Famille</th><th>Total</th><th>En attente</th><th>Traités</th><th>Montant</th></tr></thead><tbody>${famRows}</tbody></table>`
+    ? `<table><thead><tr><th>Famille</th><th>Total</th><th>Attente</th><th>Traités</th><th>Montant</th></tr></thead><tbody>${famRows}</tbody></table>`
     : '<div class="empty">Aucune donnée.</div>';
-
-  // Par praticien
   const byPrat = {};
   state.rejets.forEach(r=>{
     const key = r.praticien || '(non assigné)';
@@ -634,10 +662,8 @@ function renderStats(){
     <td style="color:var(--ok)">${v.traites}</td>
     <td>${v.montant.toFixed(2)} €</td></tr>`).join('');
   document.getElementById('statsByPraticien').innerHTML = pratRows
-    ? `<table><thead><tr><th>Praticien</th><th>Total</th><th>En attente</th><th>Traités</th><th>Montant</th></tr></thead><tbody>${pratRows}</tbody></table>`
+    ? `<table><thead><tr><th>Praticien</th><th>Total</th><th>Attente</th><th>Traités</th><th>Montant</th></tr></thead><tbody>${pratRows}</tbody></table>`
     : '<div class="empty">Aucune donnée.</div>';
-
-  // Par code
   const byCode = {};
   state.rejets.forEach(r=>{
     byCode[r.code] = byCode[r.code] || {total:0, montant:0, motif:(state.codes[r.code]||{}).motif||''};
@@ -652,9 +678,6 @@ function renderStats(){
     : '<div class="empty">Aucune donnée.</div>';
 }
 
-/* =========================================================
-   TAB REGLAGES
-   ========================================================= */
 function renderSettings(){
   document.getElementById('praticiensList').innerHTML = state.praticiens.length
     ? state.praticiens.map(p=>`<span class="tag">${esc(p)} <a href="#" data-rm="${esc(p)}" style="color:var(--danger);text-decoration:none;margin-left:4px;">✕</a></span>`).join('')
@@ -662,9 +685,8 @@ function renderSettings(){
   document.querySelectorAll('a[data-rm]').forEach(a=>{
     a.addEventListener('click',(e)=>{
       e.preventDefault();
-      const p = a.dataset.rm;
-      if(!confirm(`Supprimer ${p} ?`)) return;
-      state.praticiens = state.praticiens.filter(x=>x!==p);
+      if(!confirm(`Supprimer ${a.dataset.rm} ?`)) return;
+      state.praticiens = state.praticiens.filter(x=>x!==a.dataset.rm);
       save(); renderSettings();
     });
   });
@@ -700,7 +722,7 @@ document.getElementById('importCodes').addEventListener('change', (e)=>{
           origine: String(r.Origine||r.origine||'').trim(),
           cause: String(r['Cause probable']||r.cause||'').trim(),
           action: String(r['Action corrective']||r.action||'').trim(),
-          prevention: String(r.Prévention||r.prevention||'').trim(),
+          prevention: String(r['Prévention']||r.prevention||'').trim(),
           resoumission: String(r['Resoumission possible']||r.resoumission||'').trim(),
           delai: r['Délai cible (j ouvrés)']||r.delai||'',
           priorite: String(r.Priorité||r.priorite||'').trim(),
@@ -710,7 +732,6 @@ document.getElementById('importCodes').addEventListener('change', (e)=>{
       });
       save();
       document.getElementById('importCodesStatus').textContent = `✓ ${count} rejets importés.`;
-      renderAllCodes();
     }catch(err){
       document.getElementById('importCodesStatus').textContent = '✗ Erreur : '+err.message;
     }
@@ -724,6 +745,10 @@ function download(filename, text){
   const a = document.createElement('a');
   a.href = url; a.download = filename; a.click();
   URL.revokeObjectURL(url);
+}
+function csvCell(v){
+  const s = String(v==null?'':v);
+  return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
 }
 
 document.getElementById('exportCodes').addEventListener('click',()=>{
@@ -746,31 +771,20 @@ document.getElementById('exportRejets').addEventListener('click',()=>{
   download('rejets.csv', rows.map(r=>r.map(csvCell).join(';')).join('\n'));
 });
 
-function csvCell(v){
-  const s = String(v==null?'':v);
-  return /[;"\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s;
-}
-
 document.getElementById('loadBase').addEventListener('click',()=>{
   if(!confirm('Recharger la base de 55 rejets ? Les codes modifiés seront écrasés.')) return;
   state.codes = {...BASE_REJETS};
-  save(); renderAllCodes();
-  alert('Base de 55 rejets rechargée.');
+  save(); alert('Base rechargée.');
 });
 
 document.getElementById('resetAll').addEventListener('click',()=>{
-  if(!confirm('Tout réinitialiser ? Les codes, rejets et praticiens seront effacés.')) return;
+  if(!confirm('Tout réinitialiser ?')) return;
   localStorage.removeItem(STORAGE_KEY);
   state = {codes:{...BASE_REJETS}, rejets:[], praticiens:['P1','P2','P3']};
-  save(); renderAllCodes(); renderRejets(); renderStats(); renderSettings();
+  save(); location.reload();
 });
 
-/* ---------- util ---------- */
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-
-/* ---------- init ---------- */
 load();
-renderAllCodes();
 renderMiniStats();
 renderSettings();
 searchInput.focus();
