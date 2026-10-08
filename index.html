@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DentaOps Rejets — Action immédiate & Statistiques</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #0f172a; color: #e2e8f0;
+    min-height: 100vh; padding: 16px 16px 40px;
+  }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; text-align: center; color: #38bdf8; margin-bottom: 4px; }
+  .sub { text-align: center; color: #64748b; font-size: 0.8rem; margin-bottom: 16px; }
+
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; background: #1e293b; padding: 4px; border-radius: 12px; }
+  .tab {
+    flex: 1; padding: 10px; text-align: center; font-size: 0.85rem;
+    font-weight: 600; color: #94a3b8; cursor: pointer; border-radius: 8px;
+    transition: all 0.15s;
+  }
+  .tab.active { background: #38bdf8; color: #0f172a; }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  textarea#paste {
+    width: 100%; min-height: 80px; padding: 14px;
+    font-size: 0.95rem; border: 2px solid #334155; border-radius: 12px;
+    background: #1e293b; color: #e2e8f0; outline: none;
+    resize: vertical; font-family: inherit;
+  }
+  textarea#paste:focus { border-color: #38bdf8; }
+  textarea#paste::placeholder { color: #64748b; }
+
+  .cat-bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+  .cat-chip {
+    font-size: 0.75rem; padding: 6px 10px; background: #1e293b;
+    border: 1px solid #334155; border-radius: 20px; color: #94a3b8;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .cat-chip.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; font-weight: 600; }
+
+  .result {
+    background: #1e293b; border-radius: 14px; padding: 18px;
+    margin-bottom: 14px; border-left: 5px solid #38bdf8;
+    animation: slide 0.2s ease;
+  }
+  @keyframes slide { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform: none;} }
+  .result .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .result .code { font-size: 1.3rem; font-weight: 800; color: #38bdf8; letter-spacing: 1px; }
+  .result .cat {
+    font-size: 0.65rem; padding: 3px 8px; background: #334155;
+    border-radius: 6px; color: #94a3b8; text-transform: uppercase;
+    letter-spacing: 0.5px; white-space: nowrap;
+  }
+  .result .libelle { font-size: 0.9rem; color: #cbd5e1; margin-bottom: 14px; font-style: italic; }
+  .result .action-label {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #4ade80; margin-bottom: 6px; font-weight: 700;
+  }
+  .result .action { font-size: 1.05rem; line-height: 1.55; color: #f1f5f9; margin-bottom: 12px; }
+  .copy-btn {
+    background: #38bdf8; color: #0f172a; border: none;
+    padding: 10px 16px; border-radius: 8px; font-size: 0.85rem;
+    font-weight: 700; cursor: pointer;
+  }
+  .copy-btn.copied { background: #4ade80; }
+
+  .empty { text-align: center; color: #64748b; padding: 40px 20px; font-style: italic; font-size: 0.9rem; }
+  .hint { text-align: center; color: #475569; font-size: 0.75rem; margin-top: 24px; }
+  .count { text-align: center; color: #38bdf8; font-size: 0.75rem; margin-bottom: 12px; }
+
+  .history-bar { margin-top: 24px; }
+  .history-bar h3 { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom;
+: 8px; }
+  .history-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .history-chip {
+    font-size: 0.75rem; padding: 5px 10px; background: #1e293b    border: 1px solid #334155; border-radius: 6px; color: #cbd5e1; cursor: pointer;
+  }
+  .history-chip:hover { border-color: #38bdf8; color: #38bdf8; }
+
+  .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .kpi {
+    background: #1e293b; border-radius: 12px; padding: 16px;
+    border-left: 4px solid #38bdf8;
+  }
+  .kpi .val { font-size: 1.8rem; font-weight: 800; color: #38bdf8; }
+  .kpi .lab { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+  .kpi.green { border-left-color: #4ade80; }
+  .kpi.green .val { color: #4ade80; }
+  .kpi.orange { border-left-color: #f59e0b; }
+  .kpi.orange .val { color: #f59e0b; }
+
+  .section-title {
+    font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;
+    letter-spacing: 1px; margin: 22px 0 10px;
+  }
+  .bar-row { margin-bottom: 10px; }
+  .bar-head { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 4px; }
+  .bar-head .bcode { color: #38bdf8; font-weight: 700; }
+  .bar-head .bcount { color: #94a3b8; }
+  .bar-track { background: #1e293b; border-radius: 6px; height: 10px; overflow: hidden; }
+  .bar-fill {
+    height: 100%; background: linear-gradient(90deg, #38bdf8, #4ade80);
+    border-radius: 6px; transition: width 0.5s;
+  }
+
+  .stats-actions { display: flex; gap: 8px; margin-top: 24px; flex-wrap: wrap; }
+  .btn {
+    flex: 1; min-width: 140px; padding: 12px; border-radius: 10px;
+    border: 1px solid #334155; background: #1e293b; color: #e2e8f0;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer;
+  }
+  .btn.danger { border-color: #7f1d1d; color: #fca5a5; }
+  .btn.primary { background: #38bdf8; color: #0f172a; border: none; }
+
+  .footer {
+    text-align: center; color: #475569; font-size: 0.7rem;
+    margin-top: 30px; padding-top: 20px; border-top: 1px solid #1e293b;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🦷 DentaOps Rejets</h1>
+  <p class="sub">Tape un code de rejet → l'action à faire s'affiche</p>
+
+  <div class="tabs">
+    <div class="tab active" data-panel="search">🔍 Recherche</div>
+    <div class="tab" data-panel="stats">📊 Statistiques</div>
+  </div>
+
+  <div class="panel active" id="panel-search">
+    <p class="count" id="count"></p>
+    <textarea id="paste" placeholder="Colle ici le message de rejet complet ou tape juste le code (ex: 2600 700)"></textarea>
+    <div class="cat-bar" id="catBar"></div>
+    <div id="results"></div>
+
+    <div class="history-bar" id="historyBar" style="display:none;">
+      <h3>🕐 Codes récents</h3>
+      <div class="history-list" id="historyList"></div>
+    </div>
+    <p class="hint">💡 Tape "2600700", "2600 700" ou colle le message entier — l'app comprend.</p>
+  </div>
+
+  <div class="panel" id="panel-stats">
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="section-title">🔥 Top rejets récurrents</div>
+    <div id="topBars"></div>
+
+    <div class="section-title">📂 Répartition par catégorie</div>
+    <div id="catBars"></div>
+
+    <div class="section-title">📈 Activité des 7 derniers jours</div>
+    <div id="weeklyBars"></div>
+
+    <div class="stats-actions">
+      <button class="btn primary" id="exportBtn">📤 Exporter CSV</button>
+      <button class="btn danger" id="resetBtn">🗑️ Réinitialiser</button>
+    </div>
+    <p class="hint">Données stockées localement sur cet appareil (confidentiel).</p>
+  </div>
+
+  <p class="footer">© DentaOps — dentaops.com</p>
+</div>
+
+<script>
+const CODES = {
+  "2600 700": { libelle: "Absence de localisation dentaire", cat: "Localisation",
+    action: "Indiquer systématiquement le ou les numéros des dents soignées lors de la facturation." },
+  "2600 702": { libelle: "Nombre de dents insuffisant", cat: "Localisation",
+    action: "Indiquer le bon nombre de dents concernées (avulsion multiple = plusieurs numéros)." },
+  "2600 710": { libelle: "Incompatibilité code CCAM / localisation", cat: "Localisation",
+    action: "Vérifier la compatibilité acte / localisation. Détartrage : 01 maxillaire, 02 mandibulaire, 01+02 complet (jamais 00)." },
+  "0568 002": { libelle: "Localisation dentaire invalide", cat: "Localisation",
+    action: "Vérifier la nomenclature officielle des localisations dentaires sur Ameli." },
+  "2600 649": { libelle: "Association d'actes incompatible", cat: "CCAM",
+    action: "Les codes CCAM facturés ne sont pas compatibles. Consulter les règles d'association sur ameli.fr." },
+  "2600 650": { libelle: "Code association non prévu", cat: "CCAM",
+    action: "Vérifier le code association attendu pour cet acte CCAM (voir CCAM sur ameli.fr)." },
+  "0450 097": { libelle: "Soins de suite sans date d'examen valide", cat: "Prévention",
+    action: "Facturer l'examen bucco-dentaire de référence 2 à 3 jours avant les soins de suite." },
+  "0600 064": { libelle: "Rubrique bucco-dentaire absente", cat: "Prévention",
+    action: "Vérifier l'éligibilité du patient (âge, grossesse) et la réception du bon de prise en charge." },
+  "0600 069": { libelle: "Rubrique prévention absente", cat: "Prévention",
+    action: "Vérifier la période de prise en charge et le matricule utilisé pour la facturation." },
+  "0450 054": { libelle: "ETM non trouvée en BDO", cat: "Tiers payant",
+    action: "Pas d'ALD → code 0 ; pension d'invalidité → code 5." },
+  "0450 056": { libelle: "ETM connue en BDO mais non transmise", cat: "Tiers payant",
+    action: "Vérifier les droits (ADRi, attestation) et faire mettre à jour la carte Vitale du patient." },
+  "0450 057": { libelle: "MTM non trouvée en BDO", cat: "Tiers payant",
+    action: "Vérifier la situation du patient et le motif de prise en charge." },
+  "0450 072": { libelle: "Exonération divergente FSE / AM", cat: "Tiers payant",
+    action: "Retélétransmettre la facture SANS motif d'exonération." },
+  "0480 054": { libelle: "Facture TPC incompatible type contrat", cat: "Tiers payant",
+    action: "Consulter les droits (ADRi, attestation) et vérifier l'éligibilité C2S à la date des soins." },
+  "0480 061": { libelle: "Organisme complémentaire non habilité ACS", cat: "Tiers payant",
+    action: "Mettre à jour le logiciel, consulter les droits, faire mettre à jour la carte Vitale." },
+  "0540 064": { libelle: "Incompatibilité nature prestation / spécialité", cat: "Tiers payant",
+    action: "Vérifier que les actes facturés sont autorisés pour la spécialité du praticien." },
+  "0540 079": { libelle: "Absence contrat et forfait C2S", cat: "Tiers payant",
+    action: "Vérifier la situation du bénéficiaire et retransmettre avec le bon NNI si droits valides." },
+  "0250 050": { libelle: "Assuré absent dans la BDO", cat: "Technique",
+    action: "Vérifier la saisie du NIR et l'organisme d'affiliation sur l'attestation de droits." },
+  "0250 051": { libelle: "Bénéficiaire absent de la BDO", cat: "Technique",
+    action: "Vérifier la date de naissance du bénéficiaire." },
+  "0460 051": { libelle: "Prescripteur inconnu", cat: "Technique",
+    action: "Vérifier le numéro de prescripteur sur l'ordonnance." },
+  "0460 053": { libelle: "Prescripteur inconnu (variante)", cat: "Technique",
+    action: "Vérifier le numéro de prescripteur sur l'ordonnance." },
+  "0470 049": { libelle: "Prescription interdite à cette date", cat: "Technique",
+    action: "Praticien salarié → numéro entité géographique ; remplaçant → numéro du remplacé." },
+  "0180 051": { libelle: "Facture déjà en traitement IRIS", cat: "Technique",
+    action: "Vérifier le numéro de facture — doublon possible." },
+  "0600 051": { libelle: "Date de prestation postérieure à date décès", cat: "Technique",
+    action: "Vérifier la date de décès du bénéficiaire et corriger la date de prestation." },
+  "0700 060": { libelle: "Écart tarifaire", cat: "Technique",
+    action: "Vérifier le tarif appliqué et le tarif de référence applicable à la date." },
+  "1170 001": { libelle: "Base de remboursement absente", cat: "Technique",
+    action: "Vérifier la codification de l'acte facturé." },
+  "2600 850": { libelle: "Prix unitaire erroné", cat: "Technique",
+    action: "Vérifier le tarif applicable à la date de facturation." },
+  "6500 001": { libelle: "Prix unitaire absent", cat: "Technique",
+    action: "Vérifier que le prix unitaire est bien renseigné pour l'acte." },
+  "1031": { libelle: "Erreur télétransmission", cat: "Technique",
+    action: "Vérifier la connexion et retransmettre. Si persiste, contacter l'éditeur du logiciel." },
+  "4005": { libelle: "Erreur de structure du flux", cat: "Technique",
+    action: "Contacter l'éditeur du logiciel — le flux est mal formé." },
+  "4015": { libelle: "Erreur de routage SESAM-Vitale", cat: "Technique",
+    action: "Vérifier la carte CPS et la connexion, puis retransmettre." },
+  "2900 001": { libelle: "Multiples factures dentistes à J", cat: "Doublon",
+    action: "Vérifier le bénéficiaire. En cas d'erreur, demander l'annulation de la FSE erronée." },
+  "2900 005": { libelle: "La facture a déjà été payée", cat: "Doublon",
+    action: "Vérifier le paiement. Si nécessaire, formuler une réclamation." },
+  "2900 230": { libelle: "Multiples facturations dentistes", cat: "Doublon",
+    action: "Vérifier le bénéficiaire et annuler la FSE erronée si doublon confirmé." },
+  "431": { libelle: "Lot avec MT RC-ZERO", cat: "Mutuelle",
+    action: "Vérifier le montant du reste à charge, corriger le lot et retransmettre." },
+  "000": { libelle: "Code rejet indéfini", cat: "Mutuelle",
+    action: "Contacter l'organisme complémentaire pour identifier la cause précise." },
+  "113": { libelle: "Date facture erronée", cat: "Mutuelle",
+    action: "Vérifier la date de facture transmise et corriger." },
+  "200": { libelle: "N° PS inconnu ou sans convention TP", cat: "Mutuelle",
+    action: "Vérifier le n° PS et la convention de tiers payant avec l'organisme." },
+  "301": { libelle: "N° PS différent type 2/4", cat: "Mutuelle",
+    action: "Incohérence dans le flux. Vérifier le logiciel de facturation." },
+  "302": { libelle: "N° assuré différent type 2/4", cat: "Mutuelle",
+    action: "Incohérence dans le flux. Vérifier les données patient." },
+  "303": { libelle: "Caractère alphabétique dans zone numérique", cat: "Mutuelle",
+    action: "Erreur de saisie. Corriger le champ concerné." },
+  "305": { libelle: "N° PS différent type 1/2", cat: "Mutuelle",
+    action: "Vérifier le logiciel de facturation." },
+  "306": { libelle: "N° assuré + clé différent type 2/4", cat: "Mutuelle",
+    action: "Vérifier les données patient." },
+  "307": { libelle: "Marquage de flux incorrect", cat: "Mutuelle",
+    action: "Erreur de format. Vérifier avec le logiciel de facturation." },
+  "308": { libelle: "Code type facture incorrect", cat: "Mutuelle",
+    action: "Vérifier le type de facture transmis." },
+  "400": { libelle: "Incompatibilité taux RO / code acte", cat: "Mutuelle",
+    action: "Vérifier la codification de l'acte." },
+  "401": { libelle: "Nature exonération TM non renseignée", cat: "Mutuelle",
+    action: "Renseigner la nature d'exonération du ticket modérateur." },
+  "402": { libelle: "Incompatibilité taux RO / code exonération TM", cat: "Mutuelle",
+    action: "Corriger le taux ou l'exonération." },
+  "403": { libelle: "Incompatibilité taux RO / régime", cat: "Mutuelle",
+    action: "Vérifier le régime de l'assuré." },
+  "404": { libelle: "Incompatibilité taux RO / risque", cat: "Mutuelle",
+    action: "Vérifier la codification." },
+  "405": { libelle: "Incompatibilité taux mutuelle / risque", cat: "Mutuelle",
+    action: "Vérifier les garanties du contrat." },
+  "406": { libelle: "Incompatibilité taux RO / acte", cat: "Mutuelle",
+    action: "Vérifier la codification de l'acte." },
+  "407": { libelle: "N° facture non renseigné ou incorrect", cat: "Mutuelle",
+    action: "Renseigner correctement le numéro de facture." },
+  "408": { libelle: "Code nature opération inconnu", cat: "Mutuelle",
+    action: "Vérifier le code nature de l'opération transmis." }
+};
+
+const input = document.getElementById("paste");
+const results = document.getElementById("results");
+const catBar = document.getElementById("catBar");
+const historyBar = document.getElementById("historyBar");
+const historyList = document.getElementById("historyList");
+const countEl = document.getElementById("count");
+let activeCat = null;
+
+countEl.textContent = `📚 ${Object.keys(CODES).length} codes référencés`;
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.onclick = () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("panel-" + tab.dataset.panel).classList.add("active");
+    if (tab.dataset.panel === "stats") renderStats();
+  };
+});
+
+const CATS = [...new Set(Object.values(CODES).map(c => c.cat))];
+CATS.forEach(cat => {
+  const chip = document.createElement("div");
+  chip.className = "cat-chip";
+  chip.textContent = cat;
+  chip.onclick = () => {
+    activeCat = (activeCat === cat) ? null : cat;
+    document.querySelectorAll(".cat-chip").forEach(c => c.classList.remove("active"));
+    if (activeCat) chip.classList.add("active");
+    render(input.value);
+  };
+  catBar.appendChild(chip);
+});
+
+function extractCodes(text) {
+  const found = new Set();
+  const cleaned = text.toUpperCase().replace(/[–—]/g, "-");
+  Object.keys(CODES).forEach(code => {
+    const noSpace = code.replace(/\s/g, "");
+    const pattern = new RegExp(noSpace.split("").join("[\\s\\-]?"), "i");
+    if (pattern.test(cleaned.replace(/[\s\-]/g, ""))) found.add(code);
+  });
+  const regex1 = /\b(\d{4})[\s\-]?(\d{3,4})\b/g;
+  let m;
+  while ((m = regex1.exec(text)) !== null) {
+    const key = m[1] + " " + m[2];
+    if (CODES[key]) found.add(key);
+  }
+  const regex2 = /\b(\d{3})\b/g;
+  while ((m = regex2.exec(text)) !== null) {
+    if (CODES[m[1]]) found.add(m[1]);
+  }
+  return [...found];
+}
+
+let history = JSON.parse(localStorage.getItem("rejets_history") || "[]");
+let stats = JSON.parse(localStorage.getItem("rejets_stats") || "{}");
+let activity = JSON.parse(localStorage.getItem("rejets_activity") || "{}");
+
+function saveAll() {
+  localStorage.setItem("rejets_history", JSON.stringify(history));
+  localStorage.setItem("rejets_stats", JSON.stringify(stats));
+  localStorage.setItem("rejets_activity", JSON.stringify(activity));
+}
+
+function trackCode(code) {
+  history = [code, ...history.filter(c => c !== code)].slice(0, 8);
+  stats[code] = (stats[code] || 0) + 1;
+  const today = new Date().toISOString().slice(0, 10);
+  activity[today] = (activity[today] || 0) + 1;
+  saveAll();
+  renderHistory();
+}
+
+function renderHistory() {
+  if (history.length === 0) { historyBar.style.display = "none"; return; }
+  historyBar.style.display = "block";
+  historyList.innerHTML = history.map(c =>
+    `<span class="history-chip" data-code="${c}">${c}</span>`
+  ).join("");
+  historyList.querySelectorAll(".history-chip").forEach(el => {
+    el.onclick = () => { input.value = el.dataset.code; render(el.dataset.code); };
+  });
+}
+
+function render(text) {
+  const val = (text || "").trim();
+  if (!val) {
+    results.innerHTML = '<div class="empty">Colle un message de rejet ou tape un code…</div>';
+    return;
+  }
+  let matches = extractCodes(val);
+  if (matches.length === 0) {
+    const digits = val.replace(/[^0-9]/g, "");
+    if (digits.length >= 3) {
+      matches = Object.keys(CODES).filter(k => k.replace(/\s/g, "").includes(digits));
+    }
+  }
+  if (activeCat) matches = matches.filter(c => CODES[c].cat === activeCat);
+
+  if (matches.length === 0) {
+    results.innerHTML = '<div class="empty">❌ Aucun code reconnu.<br>Vérifie la saisie ou le message collé.</div>';
+    return;
+  }
+
+  results.innerHTML = matches.map(code => {
+    const d = CODES[code];
+    return `
+      <div class="result">
+        <div class="top">
+          <div class="code">${code}</div>
+          <div class="cat">${d.cat}</div>
+        </div>
+        <div class="libelle">${d.libelle}</div>
+        <div class="action-label">✅ Action à faire</div>
+        <div class="action">${d.action}</div>
+        <button class="copy-btn" data-action="${d.action.replace(/"/g, '&quot;')}">📋 Copier l'action</button>
+      </div>
+    `;
+  }).join("");
+
+  results.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.onclick = async () => {
+      const txt = btn.dataset.action;
+      try { await navigator.clipboard.writeText(txt); }
+      catch (e) {
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      btn.textContent = "✅ Copié !";
+      btn.classList.add("copied");
+      setTimeout(() => { btn.textContent = "📋 Copier l'action"; btn.classList.remove("copied"); }, 1500);
+    };
+  });
+
+  matches.forEach(c => trackCode(c));
+}
+
+function renderStats() {
+  const totalConsultations = Object.values(stats).reduce((a, b) => a + b, 0);
+  const timeSavedMin = totalConsultations * 3;
+  const uniqueCodes = Object.keys(stats).length;
+  const avgPerDay = (() => {
+    const days = Object.keys(activity).length;
+    return days > 0 ? (totalConsultations / days).toFixed(1) : 0;
+  })();
+
+  document.getElementById("kpiGrid").innerHTML = `
+    <div class="kpi">
+      <div class="val">${totalConsultations}</div>
+      <div class="lab">Rejets traités</div>
+    </div>
+    <div class="kpi green">
+      <div class="val">${timeSavedMin >= 60 ? (timeSavedMin/60).toFixed(1) + " h" : timeSavedMin + " min"}</div>
+      <div class="lab">Temps économisé</div>
+    </div>
+    <div class="kpi orange">
+      <div class="val">${uniqueCodes}</div>
+      <div class="lab">Codes distincts</div>
+    </div>
+    <div class="kpi">
+      <div class="val">${avgPerDay}</div>
+      <div class="lab">Rejets / jour</div>
+    </div>
+  `;
+
+  const sorted = Object.entries(stats).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const max = sorted[0]?.[1] || 1;
+  document.getElementById("topBars").innerHTML = sorted.length === 0
+    ? '<div class="empty">Aucune donnée pour le moment.</div>'
+    : sorted.map(([code, n]) => `
+      <div class="bar-row">
+        <div class="bar-head">
+          <span class="bcode">${code} — ${CODES[code]?.libelle || "?"}</span>
+          <span class="bcount">${n}×</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(n/max)*100}%"></div></div>
+      </div>
+    `).join("");
+
+  const catCount = {};
+  Object.entries(stats).forEach(([code, n]) => {
+    const cat = CODES[code]?.cat || "Autre";
+    catCount[cat] = (catCount[cat] || 0) + n;
+  });
+  const catSorted = Object.entries(catCount).sort((a, b) => b[1] - a[1]);
+  const catMax = catSorted[0]?.[1] || 1;
+  document.getElementById("catBars").innerHTML = catSorted.length === 0
+    ? '<div class="empty">Aucune donnée pour le moment.</div>'
+    : catSorted.map(([cat, n]) => `
+      <div class="bar-row">
+        <div class="bar-head">
+          <span class="bcode">${cat}</span>
+          <span class="bcount">${n}×</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(n/catMax)*100}%"></div></div>
+      </div>
+    `).join("");
+
+  const days7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    days7.push({ key, label: d.toLocaleDateString("fr-FR", { weekday: "short" }), n: activity[key] || 0 });
+  }
+  const wMax = Math.max(...days7.map(d => d.n), 1);
+  document.getElementById("weeklyBars").innerHTML = days7.map(d => `
+    <div class="bar-row">
+      <div class="bar-head">
+        <span class="bcode">${d.label}</span>
+        <span class="bcount">${d.n}</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(d.n/wMax)*100}%"></div></div>
+    </div>
+  `).join("");
+}
+
+document.getElementById("exportBtn").onclick = () => {
+  const rows = [["Code", "Libellé", "Catégorie", "Nombre de rejets", "Action"]];
+  Object.entries(stats).sort((a, b) => b[1] - a[1]).forEach(([code, n]) => {
+    const d = CODES[code] || { libelle: "", cat: "", action: "" };
+    rows.push([code, d.libelle, d.cat, n, d.action]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(";")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `dentaops_rejets_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+document.getElementById("resetBtn").onclick = () => {
+  if (confirm("⚠️ Effacer toutes les statistiques et l'historique ?")) {
+    stats = {}; history = []; activity = {};
+    saveAll();
+    renderStats();
+    renderHistory();
+  }
+};
+
+input.addEventListener("input", e => render(e.target.value));
+renderHistory();
+render("");
+</script>
+</body>
+</html>
